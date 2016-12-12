@@ -34,13 +34,32 @@ func FnContainer(client *docker.Client, image string) (Stdout *bytes.Buffer) {
 	}
 	defer client.RemoveContainer(docker.RemoveContainerOptions{ID: container.ID, Force: true})
 	client.StartContainer(container.ID, nil)
-
 	stdout := new(bytes.Buffer)
 	client.Logs(docker.LogsOptions{
 		Container:    container.ID,
 		Stdout:       true,
 		OutputStream: stdout,
 	})
+	Stdout = stdout
+	return
+}
+
+func FnImageBuild(client *docker.Client, contextDir, dockerFile, imageName string) (Name string, Stdout *bytes.Buffer) {
+	if dockerFile == "" {
+		dockerFile = "Dockerfile"
+	}
+	stdout := new(bytes.Buffer)
+	Name = "gofn/" + imageName
+	err := client.BuildImage(docker.BuildImageOptions{
+		Name:           Name,
+		Dockerfile:     dockerFile,
+		SuppressOutput: true,
+		OutputStream:   stdout,
+		ContextDir:     contextDir,
+	})
+	if err != nil {
+		panic(err)
+	}
 	Stdout = stdout
 	return
 }

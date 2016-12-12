@@ -9,8 +9,5 @@ Function process via container provider
 
 ## Run
 
-    cd testDocker
-    docker build . -t gofn-python
-    cd ../
     go run main.go
 
