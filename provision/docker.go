@@ -2,6 +2,7 @@ package provision
 
 import (
 	"bytes"
+	"errors"
 	"fmt"
 	"time"
 
@@ -64,5 +65,24 @@ func FnImageBuild(client *docker.Client, contextDir, dockerFile, imageName strin
 		panic(err)
 	}
 	Stdout = stdout
+	return
+}
+
+// FnFindImage returns image data by name
+func FnFindImage(client *docker.Client, imageName string) (image docker.APIImages, err error) {
+	var imgs []docker.APIImages
+	name := "gofn/" + imageName
+
+	imgs, err = client.ListImages(docker.ListImagesOptions{Filter: name})
+	if err != nil {
+		return
+	}
+
+	if len(imgs) == 0 {
+		err = errors.New("Image not found")
+		return
+	}
+
+	image = imgs[0]
 	return
 }
