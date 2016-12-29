@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"log"
 	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
@@ -21,9 +22,16 @@ func FnClient(endPoint string) (client *docker.Client) {
 	return
 }
 
-func FnContainer(client *docker.Client, image string) (Stdout *bytes.Buffer) {
+// FnRemove remove container
+func FnRemove(client *docker.Client, containerID string) (err error) {
+	err = client.RemoveContainer(docker.RemoveContainerOptions{ID: containerID, Force: true})
+	return
+}
+
+// FnContainer create container
+func FnContainer(client *docker.Client, image string) (container *docker.Container, err error) {
 	t := time.Now()
-	container, err := client.CreateContainer(docker.CreateContainerOptions{
+	container, err = client.CreateContainer(docker.CreateContainerOptions{
 		Name: fmt.Sprintf("gofn-%s", t.Format("20060102150405")),
 		Config: &docker.Config{
 			Image:     image,
@@ -31,20 +39,6 @@ func FnContainer(client *docker.Client, image string) (Stdout *bytes.Buffer) {
 			OpenStdin: true,
 		},
 	})
-	if err != nil {
-		panic(err)
-	}
-
-	defer client.RemoveContainer(docker.RemoveContainerOptions{ID: container.ID, Force: true})
-	client.StartContainer(container.ID, nil)
-	client.WaitContainerWithContext(container.ID, nil)
-	stdout := new(bytes.Buffer)
-	client.Logs(docker.LogsOptions{
-		Container:    container.ID,
-		Stdout:       true,
-		OutputStream: stdout,
-	})
-	Stdout = stdout
 	return
 }
 
@@ -84,5 +78,48 @@ func FnFindImage(client *docker.Client, imageName string) (image docker.APIImage
 	}
 
 	image = imgs[0]
+	return
+}
+
+// FnFindContainer return container by image name
+func FnFindContainer(client *docker.Client, imageName string) (container docker.APIContainers, err error) {
+	var containers []docker.APIContainers
+	containers, err = client.ListContainers(docker.ListContainersOptions{All: true})
+	if err != nil {
+		return
+	}
+
+	name := "gofn/" + imageName
+
+	for _, v := range containers {
+		if v.Image == name {
+			container = v
+			return
+		}
+	}
+	err = errors.New("Container not found")
+	return
+}
+
+func FnKillContainer(client *docker.Client, containerID string) (err error) {
+	err = client.KillContainer(docker.KillContainerOptions{ID: containerID})
+	return
+}
+
+// FnRun runs the container
+func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer) {
+	err := client.StartContainer(containerID, nil)
+	if err != nil {
+		log.Println(err)
+	}
+	client.WaitContainerWithContext(containerID, nil)
+	stdout := new(bytes.Buffer)
+
+	client.Logs(docker.LogsOptions{
+		Container:    containerID,
+		Stdout:       true,
+		OutputStream: stdout,
+	})
+	Stdout = stdout
 	return
 }
