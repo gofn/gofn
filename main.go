@@ -3,7 +3,6 @@ package main
 import (
 	"encoding/json"
 	"fmt"
-	"log"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/nuveo/gofn/provision"
@@ -14,7 +13,7 @@ func main() {
 
 	img, err := provision.FnFindImage(client, "python")
 	if err != nil {
-		log.Println(err)
+		panic(err)
 	}
 
 	var imageName string
