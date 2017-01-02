@@ -42,7 +42,7 @@ func main() {
 }
 ```
 
-#### Run Example
+### Run Example
 
 ```bash
     cd examples
@@ -51,7 +51,7 @@ func main() {
 
 You can also compile with _go build_ or build and install with _go install_ command then run it as a native executable.
 
-#### Example Parameters
+### Example Parameters
 
 - -contextDir is the root directory where the Dockerfile, scripts, and other container dependencies are, by default current directory "./".
 
