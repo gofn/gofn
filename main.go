@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"flag"
 	"fmt"
 
 	docker "github.com/fsouza/go-dockerclient"
@@ -9,6 +10,12 @@ import (
 )
 
 func main() {
+
+	contextDir := flag.String("contextDir", "./", "a string")
+	dockerFile := flag.String("dockerFile", "Dockerfile", "a string")
+	imageName := flag.String("imageName", "", "a string")
+	flag.Parse()
+
 	client := provision.FnClient("")
 
 	img, err := provision.FnFindImage(client, "python")
@@ -16,16 +23,16 @@ func main() {
 		panic(err)
 	}
 
-	var imageName string
+	var image string
 	var container *docker.Container
 
 	if img.ID == "" {
-		imageName, _ = provision.FnImageBuild(client, "testDocker", "Dockerfile", "python")
+		image, _ = provision.FnImageBuild(client, *contextDir, *dockerFile, *imageName)
 	} else {
-		imageName = "gofn/" + "python"
+		image = "gofn/" + (*imageName)
 	}
 
-	container, err = provision.FnContainer(client, imageName)
+	container, err = provision.FnContainer(client, image)
 	if err != nil {
 		panic(err)
 	}
