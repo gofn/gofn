@@ -7,15 +7,51 @@ Function process via container provider
 - After processing it dies
 - Must put on stdout (print) a string formatted as JSON
 
-## Run
+## Install
 
 ```bash
+go get github.com/nuveo/gofn
+```
+
+## Example
+
+```go
+package main
+
+import (
+	"flag"
+	"fmt"
+	"log"
+
+	"github.com/nuveo/gofn"
+)
+
+func main() {
+
+	contextDir := flag.String("contextDir", "./", "a string")
+	dockerFile := flag.String("dockerFile", "Dockerfile", "a string")
+	imageName := flag.String("imageName", "", "a string")
+	flag.Parse()
+
+	stdout, err := gofn.Run(*contextDir, *dockerFile, *imageName)
+	if err != nil {
+		log.Println(err)
+	}
+
+	fmt.Println(stdout)
+}
+```
+
+#### Run Example
+
+```bash
+    cd examples
     go run main.go -contextDir=testDocker -imageName=python -dockerFile=Dockerfile 
 ```
 
 You can also compile with _go build_ or build and install with _go install_ command then run it as a native executable.
 
-#### Parameters
+#### Example Parameters
 
 - -contextDir is the root directory where the Dockerfile, scripts, and other container dependencies are, by default current directory "./".
 
