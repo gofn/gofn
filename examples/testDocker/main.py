@@ -1,13 +1,13 @@
-#!/usr/bin/env python
+#!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 import json
 from random import randint
-import time 
+import time
 
-time.sleep(5) # Stop for a while to simulate some processing
+time.sleep(5)  # Stop for a while to simulate some processing
 
-obj = {"itens": ["a", "b", "c"], "boolean": True, "interge": 123456, "random": randint(0,9999)}
+obj = {"items": ["a", "b", "c"], "boolean": True, "integer": 123456,
+       "random": randint(0, 9999)}
 
-ret = json.dumps(obj, ensure_ascii=False)
+ret = json.dumps(obj, ensure_ascii=True)
 print(ret)
-# print('{"itens": ["a", "b", "c"], "boolean": true, "interge": 123456}')
