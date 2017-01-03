@@ -10,6 +10,8 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 )
 
+var ErrImageNotFound = errors.New("provision: image not found.")
+
 func FnClient(endPoint string) (client *docker.Client) {
 	if endPoint == "" {
 		endPoint = "unix:///var/run/docker.sock"
@@ -73,7 +75,7 @@ func FnFindImage(client *docker.Client, imageName string) (image docker.APIImage
 	}
 
 	if len(imgs) == 0 {
-		err = errors.New("Image not found")
+		err = ErrImageNotFound
 		return
 	}
 
