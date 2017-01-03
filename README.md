@@ -45,8 +45,8 @@ func main() {
 ### Run Example
 
 ```bash
-    cd examples
-    go run main.go -contextDir=testDocker -imageName=python -dockerFile=Dockerfile 
+	cd examples
+	go run main.go -contextDir=testDocker -imageName=python -dockerFile=Dockerfile
 ```
 
 You can also compile with _go build_ or build and install with _go install_ command then run it as a native executable.
@@ -62,4 +62,3 @@ You can also compile with _go build_ or build and install with _go install_ comm
 - -h Shows the list of parameters
 
 gofn generates the images with "gofn/" as a prefix.
-
