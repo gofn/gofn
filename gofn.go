@@ -10,7 +10,7 @@ func Run(contextDir, dockerFile, imageName string) (stdout string, err error) {
 	client := provision.FnClient("")
 
 	img, err := provision.FnFindImage(client, imageName)
-	if err != nil {
+	if err != nil && err != provision.ErrImageNotFound {
 		return
 	}
 
