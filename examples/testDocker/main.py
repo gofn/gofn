@@ -11,7 +11,7 @@ obj = {"items": ["a", "b", "c"], "boolean": True, "integer": 123456,
 
 ret = json.dumps(obj, ensure_ascii=True)
 
-with open('/tmp/test', 'a') as arq:
-    arq.write('hello world!\n')
+with open('/tmp/test', 'a') as file:
+    file.write('hello world!\n')
 
 print(ret)
