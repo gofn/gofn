@@ -1,0 +1,16 @@
+sudo: required
+
+language: go
+
+os:
+    - linux
+
+go:
+    - 1.7
+
+before_install:
+   - go get -u github.com/kardianos/govendor
+   - govendor sync
+
+script:
+    - go test -v -race ./...
