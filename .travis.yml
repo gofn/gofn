@@ -3,14 +3,14 @@ sudo: required
 language: go
 
 os:
-    - linux
+  - linux
 
 go:
-    - 1.7
+  - 1.7
 
 before_install:
-   - go get -u github.com/kardianos/govendor
-   - govendor sync
+  - go get -u github.com/kardianos/govendor
+  - govendor sync
 
 script:
-    - go test -v -race ./...
+  - go test -v -race ./...
