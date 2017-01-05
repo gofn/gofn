@@ -13,4 +13,4 @@ before_install:
   - govendor sync
 
 script:
-  - go test -v -race ./...
+  - sh test.sh
