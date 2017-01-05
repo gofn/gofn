@@ -1,4 +1,7 @@
 # gofn
+
+[![Build Status](https://travis-ci.org/nuveo/gofn.svg?branch=master)](https://travis-ci.org/nuveo/gofn)
+
 Function process via container provider
 
 ## Premise
