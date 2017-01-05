@@ -12,6 +12,12 @@ import (
 
 var ErrImageNotFound = errors.New("provision: image not found.")
 
+// VolumeOptions options to mount a host directory as data volume
+type VolumeOptions struct {
+	Source, Destination string
+}
+
+// FnClient instantiate a docker client
 func FnClient(endPoint string) (client *docker.Client) {
 	if endPoint == "" {
 		endPoint = "unix:///var/run/docker.sock"
@@ -31,10 +37,15 @@ func FnRemove(client *docker.Client, containerID string) (err error) {
 }
 
 // FnContainer create container
-func FnContainer(client *docker.Client, image string) (container *docker.Container, err error) {
+func FnContainer(client *docker.Client, image, volume string) (container *docker.Container, err error) {
 	t := time.Now()
+	binds := []string{}
+	if volume != "" {
+		binds = append(binds, volume)
+	}
 	container, err = client.CreateContainer(docker.CreateContainerOptions{
-		Name: fmt.Sprintf("gofn-%s", t.Format("20060102150405")),
+		Name:       fmt.Sprintf("gofn-%s", t.Format("20060102150405")),
+		HostConfig: &docker.HostConfig{Binds: binds},
 		Config: &docker.Config{
 			Image:     image,
 			StdinOnce: true,
@@ -103,6 +114,7 @@ func FnFindContainer(client *docker.Client, imageName string) (container docker.
 	return
 }
 
+// FnKillContainer kill the container
 func FnKillContainer(client *docker.Client, containerID string) (err error) {
 	err = client.KillContainer(docker.KillContainerOptions{ID: containerID})
 	return
@@ -124,4 +136,15 @@ func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer) {
 	})
 	Stdout = stdout
 	return
+}
+
+// FnConfigVolume set volume options
+func FnConfigVolume(opts *VolumeOptions) string {
+	if opts.Source == "" && opts.Destination == "" {
+		return ""
+	}
+	if opts.Destination == "" {
+		opts.Destination = opts.Source
+	}
+	return opts.Source + ":" + opts.Destination
 }
