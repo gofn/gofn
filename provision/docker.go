@@ -10,7 +10,8 @@ import (
 	docker "github.com/fsouza/go-dockerclient"
 )
 
-var ErrImageNotFound = errors.New("provision: image not found.")
+// ErrImageNotFound error raised when image is not found
+var ErrImageNotFound = errors.New("provision: image not found")
 
 // VolumeOptions options to mount a host directory as data volume
 type VolumeOptions struct {
@@ -55,6 +56,7 @@ func FnContainer(client *docker.Client, image, volume string) (container *docker
 	return
 }
 
+// FnImageBuild builds an image
 func FnImageBuild(client *docker.Client, contextDir, dockerFile, imageName string) (Name string, Stdout *bytes.Buffer) {
 	if dockerFile == "" {
 		dockerFile = "Dockerfile"

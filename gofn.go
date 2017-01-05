@@ -35,7 +35,7 @@ func Run(contextDir, dockerFile, imageName string, volumeOpts *provision.VolumeO
 
 	stdout = provision.FnRun(client, container.ID).String()
 
-	provision.FnRemove(client, container.ID)
+	err = provision.FnRemove(client, container.ID)
 	if err != nil {
 		return
 	}
