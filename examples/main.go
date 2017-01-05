@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/nuveo/gofn"
+	"github.com/nuveo/gofn/provision"
 )
 
 func main() {
@@ -13,9 +14,14 @@ func main() {
 	contextDir := flag.String("contextDir", "./", "a string")
 	dockerFile := flag.String("dockerFile", "Dockerfile", "a string")
 	imageName := flag.String("imageName", "", "a string")
+	volumeSource := flag.String("volumeSource", "", "a string")
+	volumeDestination := flag.String("volumeDestination", "", "a string")
 	flag.Parse()
 
-	stdout, err := gofn.Run(*contextDir, *dockerFile, *imageName)
+	stdout, err := gofn.Run(*contextDir, *dockerFile, *imageName, &provision.VolumeOptions{
+		Source:      *volumeSource,
+		Destination: *volumeDestination,
+	})
 	if err != nil {
 		log.Println(err)
 	}

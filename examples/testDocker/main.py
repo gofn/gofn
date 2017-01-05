@@ -10,4 +10,8 @@ obj = {"items": ["a", "b", "c"], "boolean": True, "integer": 123456,
        "random": randint(0, 9999)}
 
 ret = json.dumps(obj, ensure_ascii=True)
+
+with open('/tmp/test', 'a') as arq:
+    arq.write('hello world!\n')
+
 print(ret)
