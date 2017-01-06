@@ -2,6 +2,9 @@ sudo: required
 
 language: go
 
+services:
+  - docker
+
 os:
   - linux
 
