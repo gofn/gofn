@@ -195,6 +195,24 @@
 			"revisionTime": "2016-12-06T00:43:20Z"
 		},
 		{
+			"checksumSHA1": "LhnXeGwR+6to5flvZBhKqNPop14=",
+			"path": "github.com/fsouza/go-dockerclient/testing",
+			"revision": "fbeb72ccd29aa2596f364a5a85af622c651c3e16",
+			"revisionTime": "2017-01-05T08:06:59Z"
+		},
+		{
+			"checksumSHA1": "g/V4qrXjUGG9B+e3hB+4NAYJ5Gs=",
+			"path": "github.com/gorilla/context",
+			"revision": "08b5f424b9271eedf6f9f0ce86cb9396ed337a42",
+			"revisionTime": "2016-08-17T18:46:32Z"
+		},
+		{
+			"checksumSHA1": "urMd7A9QPAJYY0GZJL9qBhlUmD8=",
+			"path": "github.com/gorilla/mux",
+			"revision": "757bef944d0f21880861c2dd9c871ca543023cba",
+			"revisionTime": "2016-09-20T23:08:13Z"
+		},
+		{
 			"checksumSHA1": "Uzyon2091lmwacNsl1hCytjhHtg=",
 			"path": "github.com/hashicorp/go-cleanhttp",
 			"revision": "ad28ea4487f05916463e2423a55166280e8254b5",
