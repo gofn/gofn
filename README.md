@@ -3,6 +3,7 @@
 [![Build Status](https://travis-ci.org/nuveo/gofn.svg?branch=master)](https://travis-ci.org/nuveo/gofn)
 [![GoDoc](https://godoc.org/github.com/nuveo/gofn?status.png)](https://godoc.org/github.com/nuveo/gofn)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nuveo/gofn)](https://goreportcard.com/report/github.com/nuveo/gofn)
+[![codecov](https://codecov.io/gh/nuveo/gofn/branch/master/graph/badge.svg)](https://codecov.io/gh/nuveo/gofn)
 
 Function process via container provider
 
