@@ -31,8 +31,8 @@ func createFakeDockerAPI(requests *[]*http.Request, t *testing.T) *fake.DockerSe
 }
 
 func createFakeImage(client *docker.Client) string {
-	client.PullImage(docker.PullImageOptions{Repository: "python"}, docker.AuthConfiguration{})
-	return "python"
+	client.PullImage(docker.PullImageOptions{Repository: "gofn/python"}, docker.AuthConfiguration{})
+	return "gofn/python"
 }
 
 func createFakeContainer(client *docker.Client, t *testing.T) *docker.Container {
@@ -286,6 +286,63 @@ func TestFnFindImageServerError(t *testing.T) {
 	}
 }
 
+func TestFnFindContainerSuccessfully(t *testing.T) {
+	var requests []*http.Request
+	server := createFakeDockerAPI(&requests, t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+
+	// Create container before find it
+	container := createFakeContainer(client, t)
+
+	// Find a container by image
+	if _, e := FnFindContainer(client, container.Image); e != nil {
+		t.Errorf("Expected no errors but %q found", e)
+	}
+
+	// last request
+	lastRequest := requests[len(requests)-1]
+	if lastRequest.Method != http.MethodGet {
+		t.Errorf("expected %q  but %q found", http.MethodGet, lastRequest.Method)
+	}
+	if lastRequest.URL.Path != "/containers/json" {
+		t.Errorf("expected \"containers/json\" but path was %q", lastRequest.URL.Path)
+	}
+}
+
+func TestFnFindContainerContainerNotFound(t *testing.T) {
+	var requests []*http.Request
+	server := createFakeDockerAPI(&requests, t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+
+	// Find a container by image
+	if _, e := FnFindContainer(client, "python"); e != ErrContainerNotFound {
+		t.Errorf("Expected %q but found %q", ErrContainerNotFound, e)
+	}
+
+	// last request
+	lastRequest := requests[len(requests)-1]
+	if lastRequest.Method != http.MethodGet {
+		t.Errorf("expected %q  but %q found", http.MethodGet, lastRequest.Method)
+	}
+	if lastRequest.URL.Path != "/containers/json" {
+		t.Errorf("expected \"containers/json\" but path was %q", lastRequest.URL.Path)
+	}
+}
+
+func TestFnFindContainerServerError(t *testing.T) {
+	client := NewTestClient("wrong", t)
+
+	_, err := FnFindContainer(client, "wrong")
+	if err == nil || err == ErrContainerNotFound {
+		t.Errorf("Expected other errors but found COntainerNotfound or null: %q", err)
+	}
+}
 func TestFnConfigVolumeAllEmpty(t *testing.T) {
 	volume := FnConfigVolume(&VolumeOptions{})
 	if volume != "" {
