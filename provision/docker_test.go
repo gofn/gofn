@@ -51,6 +51,13 @@ func createFakeContainer(client *docker.Client, t *testing.T) *docker.Container 
 	return container
 }
 
+func runFakeContainer(client *docker.Client, containerID string, t *testing.T) {
+	err := client.StartContainer(containerID, nil)
+	if err != nil {
+		t.Fatal(err)
+	}
+}
+
 func NewTestClient(host string, t *testing.T) *docker.Client {
 	client, err := docker.NewClient(host)
 	if err != nil {
@@ -343,6 +350,62 @@ func TestFnFindContainerServerError(t *testing.T) {
 		t.Errorf("Expected other errors but found COntainerNotfound or null: %q", err)
 	}
 }
+
+func TestFnKilContainerSuccessfully(t *testing.T) {
+
+	var requests []*http.Request
+	server := createFakeDockerAPI(&requests, t)
+	defer server.Stop()
+	// instantiate a client
+	client := NewTestClient(server.URL(), t)
+
+	// create container before kill it
+	container := createFakeContainer(client, t)
+
+	// make sure that container are runnig
+	runFakeContainer(client, container.ID, t)
+
+	// kill a container
+	if e := FnKillContainer(client, container.ID); e != nil {
+		t.Errorf("Expected no errors but %q found", e)
+	}
+
+}
+
+func TestFnKilContainerNotRunning(t *testing.T) {
+
+	var requests []*http.Request
+	server := createFakeDockerAPI(&requests, t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+
+	// Create container before kill it
+	container := createFakeContainer(client, t)
+
+	// kill a container
+	if e := FnKillContainer(client, container.ID); e == nil {
+		t.Errorf("expecting errors, but nothing found")
+	}
+}
+
+func TestFnKilContainerNotFound(t *testing.T) {
+
+	var requests []*http.Request
+	server := createFakeDockerAPI(&requests, t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+
+	// kill a container
+	fakeID := "wrong123"
+	if e := FnKillContainer(client, fakeID); e == nil {
+		t.Errorf("expecting errors, but nothing found")
+	}
+}
+
 func TestFnConfigVolumeAllEmpty(t *testing.T) {
 	volume := FnConfigVolume(&VolumeOptions{})
 	if volume != "" {
