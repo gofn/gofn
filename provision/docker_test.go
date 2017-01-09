@@ -1,8 +1,6 @@
 package provision
 
 import (
-	"fmt"
-	"net/http"
 	"strings"
 	"testing"
 
@@ -19,11 +17,9 @@ func TestFnClientWrongClient(t *testing.T) {
 	FnClient("http://localhost:a")
 }
 
-func createFakeDockerAPI(requests *[]*http.Request, t *testing.T) *fake.DockerServer {
+func createFakeDockerAPI(t *testing.T) *fake.DockerServer {
 	// Fake docker api
-	server, err := fake.NewServer("127.0.0.1:0", nil, func(r *http.Request) {
-		*requests = append(*requests, r)
-	})
+	server, err := fake.NewServer("127.0.0.1:0", nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,8 +64,7 @@ func NewTestClient(host string, t *testing.T) *docker.Client {
 
 func TestFnRemoveContainerSuccessfully(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -82,22 +77,11 @@ func TestFnRemoveContainerSuccessfully(t *testing.T) {
 	if e := FnRemove(client, container.ID); e != nil {
 		t.Errorf("Expected no errors but %q found", e)
 	}
-
-	// last request
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodDelete {
-		t.Errorf("expected method DELETE but %q found", lastRequest.Method)
-	}
-	if lastRequest.URL.Path != fmt.Sprintf("/containers/%s", container.ID) {
-		t.Errorf("expected \"containers/%s\" but path was %q", container.ID, lastRequest.URL.Path)
-	}
-
 }
 
 func TestFnRemoveContainerImageNotFound(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -107,21 +91,11 @@ func TestFnRemoveContainerImageNotFound(t *testing.T) {
 	if e := FnRemove(client, "wrong"); e == nil {
 		t.Error("expected errors but no errors found")
 	}
-
-	// last request
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodDelete {
-		t.Errorf("expected method DELETE but %q found", lastRequest.Method)
-	}
-	if lastRequest.URL.Path != fmt.Sprintf("/containers/%s", "wrong") {
-		t.Errorf("expected \"containers/%s\" but path was %q", "wrong", lastRequest.URL.Path)
-	}
 }
 
 func TestFnContainerCreatedSuccessfully(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -136,20 +110,12 @@ func TestFnContainerCreatedSuccessfully(t *testing.T) {
 	if !strings.HasPrefix(container.Name, "gofn") {
 		t.Errorf("container should starts with gofn but found %q", container.Name)
 	}
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodPost {
-		t.Errorf("expected method %q but %q found", http.MethodPost, lastRequest.Method)
-	}
-	if !strings.Contains(lastRequest.URL.Path, "/containers/create") {
-		t.Errorf("Path is not ok, found: %q", lastRequest.URL.Path)
-	}
 
 }
 
 func TestFnContainerInvalidImage(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -161,20 +127,11 @@ func TestFnContainerInvalidImage(t *testing.T) {
 		t.Errorf("Expected errors but no errors found")
 	}
 
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodPost {
-		t.Errorf("expected method %q but %q found", http.MethodPost, lastRequest.Method)
-	}
-	if !strings.Contains(lastRequest.URL.Path, "/containers/create") {
-		t.Errorf("Path is not ok, found: %q", lastRequest.URL.Path)
-	}
-
 }
 
 func TestFnContainerCreatedWithVolume(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -194,18 +151,9 @@ func TestFnContainerCreatedWithVolume(t *testing.T) {
 	if container.HostConfig.Binds[0] != volume {
 		t.Errorf("expected volume %q bout found %q", volume, container.HostConfig.Binds[0])
 	}
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodPost {
-		t.Errorf("expected method %q but %q found", http.MethodPost, lastRequest.Method)
-	}
-	if !strings.Contains(lastRequest.URL.Path, "/containers/create") {
-		t.Errorf("Path is not ok, found: %q", lastRequest.URL.Path)
-	}
-
 }
 func TestFnBuildImageSuccessfully(t *testing.T) {
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -216,19 +164,10 @@ func TestFnBuildImageSuccessfully(t *testing.T) {
 	if name != imageName {
 		t.Errorf("image name expected %q but found %q", imageName, name)
 	}
-
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodPost {
-		t.Errorf("expected method %q but %q found", http.MethodPost, lastRequest.Method)
-	}
-	if !strings.Contains(lastRequest.URL.Path, "/build") {
-		t.Errorf("Path is not ok, found: %q", lastRequest.URL.Path)
-	}
 }
 
 func TestFnBuildImageDockerfileNotFound(t *testing.T) {
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -242,8 +181,7 @@ func TestFnBuildImageDockerfileNotFound(t *testing.T) {
 }
 
 func TestFnFindImageSuccessfully(t *testing.T) {
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -254,18 +192,10 @@ func TestFnFindImageSuccessfully(t *testing.T) {
 	if err != nil {
 		t.Errorf("no errors expected but found %q", err)
 	}
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodGet {
-		t.Errorf("expected method %q but %q found", http.MethodGet, lastRequest.Method)
-	}
-	if !strings.Contains(lastRequest.URL.Path, "/images/json") {
-		t.Errorf("Path is not ok, found: %q", lastRequest.URL.Path)
-	}
 }
 
 func TestFnFindImageImageNotFound(t *testing.T) {
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -274,13 +204,6 @@ func TestFnFindImageImageNotFound(t *testing.T) {
 	_, err := FnFindImage(client, "wrong")
 	if err != ErrImageNotFound {
 		t.Errorf("unexpected error: %q", err)
-	}
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodGet {
-		t.Errorf("expected method %q but %q found", http.MethodGet, lastRequest.Method)
-	}
-	if !strings.Contains(lastRequest.URL.Path, "/images/json") {
-		t.Errorf("Path is not ok, found: %q", lastRequest.URL.Path)
 	}
 }
 
@@ -294,8 +217,7 @@ func TestFnFindImageServerError(t *testing.T) {
 }
 
 func TestFnFindContainerSuccessfully(t *testing.T) {
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -308,20 +230,10 @@ func TestFnFindContainerSuccessfully(t *testing.T) {
 	if _, e := FnFindContainer(client, container.Image); e != nil {
 		t.Errorf("Expected no errors but %q found", e)
 	}
-
-	// last request
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodGet {
-		t.Errorf("expected %q  but %q found", http.MethodGet, lastRequest.Method)
-	}
-	if lastRequest.URL.Path != "/containers/json" {
-		t.Errorf("expected \"containers/json\" but path was %q", lastRequest.URL.Path)
-	}
 }
 
 func TestFnFindContainerContainerNotFound(t *testing.T) {
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -330,15 +242,6 @@ func TestFnFindContainerContainerNotFound(t *testing.T) {
 	// Find a container by image
 	if _, e := FnFindContainer(client, "python"); e != ErrContainerNotFound {
 		t.Errorf("Expected %q but found %q", ErrContainerNotFound, e)
-	}
-
-	// last request
-	lastRequest := requests[len(requests)-1]
-	if lastRequest.Method != http.MethodGet {
-		t.Errorf("expected %q  but %q found", http.MethodGet, lastRequest.Method)
-	}
-	if lastRequest.URL.Path != "/containers/json" {
-		t.Errorf("expected \"containers/json\" but path was %q", lastRequest.URL.Path)
 	}
 }
 
@@ -353,8 +256,7 @@ func TestFnFindContainerServerError(t *testing.T) {
 
 func TestFnKilContainerSuccessfully(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 	// instantiate a client
 	client := NewTestClient(server.URL(), t)
@@ -374,8 +276,7 @@ func TestFnKilContainerSuccessfully(t *testing.T) {
 
 func TestFnKilContainerNotRunning(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
@@ -392,8 +293,7 @@ func TestFnKilContainerNotRunning(t *testing.T) {
 
 func TestFnKilContainerNotFound(t *testing.T) {
 
-	var requests []*http.Request
-	server := createFakeDockerAPI(&requests, t)
+	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
