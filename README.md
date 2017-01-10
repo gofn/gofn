@@ -38,11 +38,12 @@ func main() {
 	contextDir := flag.String("contextDir", "./", "a string")
 	dockerFile := flag.String("dockerFile", "Dockerfile", "a string")
 	imageName := flag.String("imageName", "", "a string")
+	remoteBuildURI := flag.String("remoteBuildURI", "", "a string")
 	volumeSource := flag.String("volumeSource", "", "a string")
 	volumeDestination := flag.String("volumeDestination", "", "a string")
 	flag.Parse()
 
-	stdout, err := gofn.Run(*contextDir, *dockerFile, *imageName, &provision.VolumeOptions{
+	stdout, err := gofn.Run(*contextDir, *dockerFile, *imageName, *remoteBuildURI, &provision.VolumeOptions{
 		Source:      *volumeSource,
 		Destination: *volumeDestination,
 	})
@@ -76,6 +77,9 @@ You can also compile with _go build_ or build and install with _go install_ comm
 - volumeSource is the directory that will be mounted as a data volume. By default is empty string indicating his not used.
 
 - volumeDestination is the path mounted inside the container. By default is empty string indicating his  not used but if only omitted, volumeSource is used.
+
+- remoteBuildURI is remote URI containing the Dockerfile to build. "" if is local on example.
+More details on [docker api docs](https://docs.docker.com/engine/reference/commandline/build/#/git-repositories)
 
 - -h Shows the list of parameters
 

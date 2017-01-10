@@ -152,13 +152,28 @@ func TestFnContainerCreatedWithVolume(t *testing.T) {
 		t.Errorf("expected volume %q bout found %q", volume, container.HostConfig.Binds[0])
 	}
 }
+
 func TestFnBuildImageSuccessfully(t *testing.T) {
 	server := createFakeDockerAPI(t)
 	defer server.Stop()
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _ := FnImageBuild(client, "./testing_data", "", "test")
+	name, _ := FnImageBuild(client, "./testing_data", "", "test", "")
+
+	imageName := "gofn/test"
+	if name != imageName {
+		t.Errorf("image name expected %q but found %q", imageName, name)
+	}
+}
+
+func TestFnBuildImageRemoteSuccessfully(t *testing.T) {
+	server := createFakeDockerAPI(t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+	name, _ := FnImageBuild(client, "./testing_data", "", "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git")
 
 	imageName := "gofn/test"
 	if name != imageName {
@@ -177,7 +192,7 @@ func TestFnBuildImageDockerfileNotFound(t *testing.T) {
 			t.Errorf("the code did not panic")
 		}
 	}()
-	FnImageBuild(client, "./wrong", "Dockerfile", "test")
+	FnImageBuild(client, "./wrong", "Dockerfile", "test", "")
 }
 
 func TestFnFindImageSuccessfully(t *testing.T) {

@@ -63,7 +63,7 @@ func FnContainer(client *docker.Client, image, volume string) (container *docker
 }
 
 // FnImageBuild builds an image
-func FnImageBuild(client *docker.Client, contextDir, dockerFile, imageName string) (Name string, Stdout *bytes.Buffer) {
+func FnImageBuild(client *docker.Client, contextDir, dockerFile, imageName, remote string) (Name string, Stdout *bytes.Buffer) {
 	if dockerFile == "" {
 		dockerFile = "Dockerfile"
 	}
@@ -75,6 +75,7 @@ func FnImageBuild(client *docker.Client, contextDir, dockerFile, imageName strin
 		SuppressOutput: true,
 		OutputStream:   stdout,
 		ContextDir:     contextDir,
+		Remote:         remote,
 	})
 	if err != nil {
 		panic(err)
