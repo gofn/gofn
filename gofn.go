@@ -6,7 +6,7 @@ import (
 )
 
 // Run runs the designed image
-func Run(contextDir, dockerFile, imageName string, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
+func Run(contextDir, dockerFile, imageName, remote string, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
 	client := provision.FnClient("")
 
 	volume := ""
@@ -23,7 +23,7 @@ func Run(contextDir, dockerFile, imageName string, volumeOpts *provision.VolumeO
 	var container *docker.Container
 
 	if img.ID == "" {
-		image, _ = provision.FnImageBuild(client, contextDir, dockerFile, imageName)
+		image, _ = provision.FnImageBuild(client, contextDir, dockerFile, imageName, remote)
 	} else {
 		image = "gofn/" + (imageName)
 	}
