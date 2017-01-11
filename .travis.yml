@@ -16,7 +16,7 @@ before_install:
   - govendor sync
 
 script:
-  - sh test.sh
+  - make coverage
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
