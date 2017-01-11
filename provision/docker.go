@@ -15,7 +15,7 @@ var (
 	// ErrImageNotFound is raised when image is not found
 	ErrImageNotFound = errors.New("provision: image not found")
 
-	// ErrContainerNotfound is raised when image is not found
+	// ErrContainerNotFound is raised when image is not found
 	ErrContainerNotFound = errors.New("provision: container not found")
 )
 
@@ -24,6 +24,7 @@ type VolumeOptions struct {
 	Source, Destination string
 }
 
+// BuildOptions are options used in the image build
 type BuildOptions struct {
 	ContextDir, Dockerfile, ImageName, RemoteURI string
 }
