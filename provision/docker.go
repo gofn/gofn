@@ -19,9 +19,13 @@ var (
 	ErrContainerNotFound = errors.New("provision: container not found")
 )
 
-// VolumeOptions options to mount a host directory as data volume
+// VolumeOptions are options to mount a host directory as data volume
 type VolumeOptions struct {
 	Source, Destination string
+}
+
+type BuildOptions struct {
+	ContextDir, Dockerfile, ImageName, RemoteURI string
 }
 
 // FnClient instantiate a docker client
@@ -63,19 +67,19 @@ func FnContainer(client *docker.Client, image, volume string) (container *docker
 }
 
 // FnImageBuild builds an image
-func FnImageBuild(client *docker.Client, contextDir, dockerFile, imageName, remote string) (Name string, Stdout *bytes.Buffer) {
-	if dockerFile == "" {
-		dockerFile = "Dockerfile"
+func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdout *bytes.Buffer) {
+	if opts.Dockerfile == "" {
+		opts.Dockerfile = "Dockerfile"
 	}
 	stdout := new(bytes.Buffer)
-	Name = "gofn/" + imageName
+	Name = "gofn/" + opts.ImageName
 	err := client.BuildImage(docker.BuildImageOptions{
 		Name:           Name,
-		Dockerfile:     dockerFile,
+		Dockerfile:     opts.Dockerfile,
 		SuppressOutput: true,
 		OutputStream:   stdout,
-		ContextDir:     contextDir,
-		Remote:         remote,
+		ContextDir:     opts.ContextDir,
+		Remote:         opts.RemoteURI,
 	})
 	if err != nil {
 		panic(err)

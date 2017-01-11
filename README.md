@@ -36,15 +36,20 @@ import (
 func main() {
 
 	contextDir := flag.String("contextDir", "./", "a string")
-	dockerFile := flag.String("dockerFile", "Dockerfile", "a string")
+	dockerfile := flag.String("dockerfile", "Dockerfile", "a string")
 	imageName := flag.String("imageName", "", "a string")
 	remoteBuildURI := flag.String("remoteBuildURI", "", "a string")
 	volumeSource := flag.String("volumeSource", "", "a string")
 	volumeDestination := flag.String("volumeDestination", "", "a string")
 	flag.Parse()
 
-	stdout, err := gofn.Run(*contextDir, *dockerFile, *imageName, *remoteBuildURI, &provision.VolumeOptions{
-		Source:      *volumeSource,
+	stdout, err := gofn.Run(&provision.BuildOptions{
+		ContextDir: *contextDir,
+		Dockerfile: *dockerfile,
+		ImageName:  *imageName,
+		RemoteURI:  *remoteBuildURI,
+	}, &provision.VolumeOptions{
+		Source:	  *volumeSource,
 		Destination: *volumeDestination,
 	})
 	if err != nil {
@@ -53,15 +58,18 @@ func main() {
 
 	fmt.Println(stdout)
 }
+
 ```
 
 ### Run Example
 
 ```bash
 	cd examples
-	go run main.go -contextDir=testDocker -imageName=python -dockerFile=Dockerfile
+	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile
 	# or using volume
-	go run main.go -contextDir=testDocker -imageName=python -dockerFile=Dockerfile -volumeSource=/tmp -volumeDestination=/tmp
+	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -volumeSource=/tmp -volumeDestination=/tmp
+	# or using remote Dockerfile
+	go run main.go -remoteBuildURI=https://github.com/gofn/dockerfile-python-example.git -imageName="pythonexample"
 ```
 
 You can also compile with _go build_ or build and install with _go install_ command then run it as a native executable.
@@ -78,7 +86,7 @@ You can also compile with _go build_ or build and install with _go install_ comm
 
 - volumeDestination is the path mounted inside the container. By default is empty string indicating his  not used but if only omitted, volumeSource is used.
 
-- remoteBuildURI is remote URI containing the Dockerfile to build. "" if is local on example.
+- remoteBuildURI is remote URI containing the Dockerfile to build.By default is empty.
 More details on [docker api docs](https://docs.docker.com/engine/reference/commandline/build/#/git-repositories)
 
 - -h Shows the list of parameters
