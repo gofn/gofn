@@ -1,4 +1,4 @@
-# gofn
+![gofn](docs/assets/logo.png)
 
 [![Build Status](https://travis-ci.org/nuveo/gofn.svg?branch=master)](https://travis-ci.org/nuveo/gofn)
 [![GoDoc](https://godoc.org/github.com/nuveo/gofn?status.png)](https://godoc.org/github.com/nuveo/gofn)
