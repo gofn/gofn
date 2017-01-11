@@ -6,7 +6,7 @@ import (
 )
 
 // Run runs the designed image
-func Run(contextDir, dockerFile, imageName, remote string, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
+func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
 	client := provision.FnClient("")
 
 	volume := ""
@@ -14,7 +14,7 @@ func Run(contextDir, dockerFile, imageName, remote string, volumeOpts *provision
 		volume = provision.FnConfigVolume(volumeOpts)
 	}
 
-	img, err := provision.FnFindImage(client, imageName)
+	img, err := provision.FnFindImage(client, buildOpts.ImageName)
 	if err != nil && err != provision.ErrImageNotFound {
 		return
 	}
@@ -23,9 +23,9 @@ func Run(contextDir, dockerFile, imageName, remote string, volumeOpts *provision
 	var container *docker.Container
 
 	if img.ID == "" {
-		image, _ = provision.FnImageBuild(client, contextDir, dockerFile, imageName, remote)
+		image, _ = provision.FnImageBuild(client, buildOpts)
 	} else {
-		image = "gofn/" + (imageName)
+		image = "gofn/" + buildOpts.ImageName
 	}
 
 	container, err = provision.FnContainer(client, image, volume)

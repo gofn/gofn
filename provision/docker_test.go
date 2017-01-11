@@ -159,7 +159,7 @@ func TestFnBuildImageSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _ := FnImageBuild(client, "./testing_data", "", "test", "")
+	name, _ := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", ""})
 
 	imageName := "gofn/test"
 	if name != imageName {
@@ -173,7 +173,7 @@ func TestFnBuildImageRemoteSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _ := FnImageBuild(client, "./testing_data", "", "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git")
+	name, _ := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git"})
 
 	imageName := "gofn/test"
 	if name != imageName {
@@ -192,7 +192,7 @@ func TestFnBuildImageDockerfileNotFound(t *testing.T) {
 			t.Errorf("the code did not panic")
 		}
 	}()
-	FnImageBuild(client, "./wrong", "Dockerfile", "test", "")
+	FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", "test", ""})
 }
 
 func TestFnFindImageSuccessfully(t *testing.T) {
