@@ -11,10 +11,11 @@ type Iaas interface {
 
 // Machine defines a generic machine
 type Machine struct {
-	ID     string `json:"id"`
-	Status string `json:"status"`
-	IP     string `json:"ip"`
-	Image  string `json:"image"`
-	Name   string `json:"name"`
-	Kind   string `json:"kind"`
+	ID        string `json:"id"`
+	Status    string `json:"status"`
+	IP        string `json:"ip"`
+	Image     string `json:"image"`
+	Name      string `json:"name"`
+	Kind      string `json:"kind"`
+	SSHKeysID []int  `json:"ssh_keys_id"`
 }

@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"errors"
+	"io/ioutil"
 	"net/url"
 	"os"
 	"strconv"
@@ -39,8 +40,13 @@ func (do *Digitalocean) Auth() (err error) {
 	return
 }
 
+// CreateMachine on digitalocean
 func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 	err = do.Auth()
+	if err != nil {
+		return
+	}
+	sshKey, err := do.getSSHKeyForDroplet()
 	if err != nil {
 		return
 	}
@@ -50,6 +56,12 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 		Size:   "512mb",
 		Image: godo.DropletCreateImage{
 			Slug: "ubuntu-16-10-x64",
+		},
+		SSHKeys: []godo.DropletCreateSSHKey{
+			{
+				ID:          sshKey.ID,
+				Fingerprint: sshKey.Fingerprint,
+			},
 		},
 	}
 	newDroplet, _, err := do.client.Droplets.Create(createRequest)
@@ -61,12 +73,44 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 		return
 	}
 	m = &iaas.Machine{
-		ID:     strconv.Itoa(newDroplet.ID),
-		IP:     ipv4,
-		Image:  newDroplet.Image.Slug,
-		Kind:   "digitalocean",
-		Name:   newDroplet.Name,
-		Status: newDroplet.Status,
+		ID:        strconv.Itoa(newDroplet.ID),
+		IP:        ipv4,
+		Image:     newDroplet.Image.Slug,
+		Kind:      "digitalocean",
+		Name:      newDroplet.Name,
+		Status:    newDroplet.Status,
+		SSHKeysID: []int{sshKey.ID},
+	}
+	return
+}
+
+func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
+	sshKeys, _, err := do.client.Keys.List(nil)
+	if err != nil {
+		return
+	}
+	for _, key := range sshKeys {
+		sshKey = &key
+		if sshKey.Name == "Gofn" {
+			return
+		}
+	}
+	sshFilePath := os.Getenv("GOFN_SSH_FILE_PATH")
+	if sshFilePath == "" {
+		err = errors.New("You must provide a SSH file path")
+		return
+	}
+	content, err := ioutil.ReadFile(sshFilePath)
+	if err != nil {
+		return
+	}
+	sshKeyRequestCreate := &godo.KeyCreateRequest{
+		Name:      "Gofn",
+		PublicKey: string(content),
+	}
+	sshKey, _, err = do.client.Keys.Create(sshKeyRequestCreate)
+	if err != nil {
+		return
 	}
 	return
 }
