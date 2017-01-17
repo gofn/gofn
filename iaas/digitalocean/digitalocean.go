@@ -2,6 +2,7 @@ package digitalocean
 
 import (
 	"errors"
+	"net/url"
 	"os"
 
 	"github.com/digitalocean/godo"
@@ -17,6 +18,7 @@ type Digitalocean struct {
 
 // Auth in Digitalocean API
 func (do *Digitalocean) Auth() (err error) {
+	apiURL := os.Getenv("DIGITALOCEAN_API_URL")
 	key := os.Getenv("DIGITALOCEAN_API_KEY")
 	if key == "" {
 		err = errors.New("You must provide a Digital Ocean API Key")
@@ -27,5 +29,11 @@ func (do *Digitalocean) Auth() (err error) {
 	})
 	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
 	do.client = godo.NewClient(oauthClient)
+	if apiURL != "" {
+		do.client.BaseURL, err = url.Parse(apiURL)
+		if err != nil {
+			return
+		}
+	}
 	return
 }
