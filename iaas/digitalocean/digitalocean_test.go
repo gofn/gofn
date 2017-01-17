@@ -1,9 +1,28 @@
 package digitalocean
 
 import (
+	"fmt"
+	"net/http"
+	"net/http/httptest"
 	"os"
 	"testing"
 )
+
+var (
+	mux    *http.ServeMux
+	server *httptest.Server
+)
+
+func setup() {
+	mux = http.NewServeMux()
+	server = httptest.NewServer(mux)
+	os.Setenv("DIGITALOCEAN_API_URL", server.URL)
+	os.Setenv("DIGITALOCEAN_API_KEY", "api-key")
+}
+
+func teardown() {
+	server.Close()
+}
 
 func TestAuth(t *testing.T) {
 	for _, test := range []struct {
@@ -27,5 +46,39 @@ func TestAuth(t *testing.T) {
 		if errBool && (do.client.BaseURL.String() != test.baseURL) {
 			t.Errorf("Expected %q but found %q", test.baseURL, do.client.BaseURL)
 		}
+	}
+}
+
+func TestCreateMachine(t *testing.T) {
+	setup()
+	defer teardown()
+	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("Expected method POST but request method is %s", r.Method)
+		}
+		// droplet := `{
+		// 				"name": "gofn",
+		// 				"region": "nyc3",
+		// 				"size": "512mb",
+		// 				"image": "ubuntu-16-10-x64",
+		// 				"networks": {
+		// 					"v4":[
+		// 						{
+		// 							"ip_address": "104.131.186.241",
+		// 						    "netmask": "255.255.240.0",
+		// 						    "gateway": "104.131.176.1",
+		// 							"type": "public"
+		// 						}
+		// 					]
+		// 				}
+		// 			}`
+		w.Header().Set("Content-Type", "application/json; charset=utf8")
+		fmt.Fprintln(w, droplet)
+		w.WriteHeader(http.StatusAccepted)
+	})
+	do := &Digitalocean{}
+	_, err := do.CreateMachine()
+	if err != nil {
+		t.Fatalf("Expected run without errors but has %q", err)
 	}
 }

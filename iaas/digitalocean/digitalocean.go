@@ -4,6 +4,7 @@ import (
 	"errors"
 	"net/url"
 	"os"
+	"strconv"
 
 	"github.com/digitalocean/godo"
 	"github.com/nuveo/gofn/iaas"
@@ -34,6 +35,38 @@ func (do *Digitalocean) Auth() (err error) {
 		if err != nil {
 			return
 		}
+	}
+	return
+}
+
+func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
+	err = do.Auth()
+	if err != nil {
+		return
+	}
+	createRequest := &godo.DropletCreateRequest{
+		Name:   "gofn",
+		Region: "nyc3",
+		Size:   "512mb",
+		Image: godo.DropletCreateImage{
+			Slug: "ubuntu-16-10-x64",
+		},
+	}
+	newDroplet, resp, err := do.client.Droplets.Create(createRequest)
+	if err != nil {
+		return
+	}
+	ipv4, err := newDroplet.PublicIPv4()
+	if err != nil {
+		return
+	}
+	m = &iaas.Machine{
+		ID:     strconv.Itoa(newDroplet.ID),
+		IP:     ipv4,
+		Image:  newDroplet.Image.Slug,
+		Kind:   "digitalocean",
+		Name:   newDroplet.Name,
+		Status: newDroplet.Status,
 	}
 	return
 }
