@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"encoding/json"
 	"fmt"
 	"net/http"
 	"net/http/httptest"
@@ -56,25 +57,26 @@ func TestCreateMachine(t *testing.T) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
 		}
-		// droplet := `{
-		// 				"name": "gofn",
-		// 				"region": "nyc3",
-		// 				"size": "512mb",
-		// 				"image": "ubuntu-16-10-x64",
-		// 				"networks": {
-		// 					"v4":[
-		// 						{
-		// 							"ip_address": "104.131.186.241",
-		// 						    "netmask": "255.255.240.0",
-		// 						    "gateway": "104.131.176.1",
-		// 							"type": "public"
-		// 						}
-		// 					]
-		// 				}
-		// 			}`
+		var createRequest map[string]interface{}
+		json.NewDecoder(r.Body).Decode(&createRequest)
+		droplet := `{"droplet": {
+						"id": 1,
+						"name": "gofn",
+						"region": {"slug": "nyc3"},
+						"status": "new",
+						"image": {"slug": "ubuntu-16-10-x64"},
+						"networks": {
+							"v4":[
+								{
+									"ip_address": "104.131.186.241",
+									"type": "public"
+								}
+							]
+						}
+					}
+				}`
 		w.Header().Set("Content-Type", "application/json; charset=utf8")
 		fmt.Fprintln(w, droplet)
-		w.WriteHeader(http.StatusAccepted)
 	})
 	do := &Digitalocean{}
 	_, err := do.CreateMachine()

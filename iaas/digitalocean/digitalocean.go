@@ -52,7 +52,7 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 			Slug: "ubuntu-16-10-x64",
 		},
 	}
-	newDroplet, resp, err := do.client.Droplets.Create(createRequest)
+	newDroplet, _, err := do.client.Droplets.Create(createRequest)
 	if err != nil {
 		return
 	}
