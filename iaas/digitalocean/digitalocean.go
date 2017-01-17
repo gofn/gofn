@@ -22,9 +22,9 @@ func (do *Digitalocean) Auth() (err error) {
 		err = errors.New("You must provide a Digital Ocean API Key")
 		return
 	}
-	tokenSource := &oauth2.StaticTokenSource{
+	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: key,
-	}
+	})
 	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
 	do.client = godo.NewClient(oauthClient)
 	return
