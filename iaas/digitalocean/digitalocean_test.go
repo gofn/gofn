@@ -266,6 +266,8 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 }
 
 func TestDeleteMachine(t *testing.T) {
+	setup()
+	defer teardown()
 	mux.HandleFunc("/v2/droplets/503/actions", func(w http.ResponseWriter, r *http.Request) {
 		rBody, err := ioutil.ReadAll(r.Body)
 		if err != nil {
@@ -282,8 +284,44 @@ func TestDeleteMachine(t *testing.T) {
 					"completed_at": null,
 					"resource_id": 503,
 					"resource_type": "droplet",
-					"region": "nyc2",
-					"region_slug": "nyc2"
+					"region": {"slug": "nyc3"}
+				}
+			}`
+			fmt.Fprintln(w, action)
+			return
+		}
+	})
+	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	})
+	machine := &iaas.Machine{ID: "503"}
+	do := &Digitalocean{}
+	err := do.DeleteMachine(machine)
+	if err != nil {
+		t.Errorf("Expected run without errors but has %q", err)
+	}
+}
+
+func TestDeleteMachineWithShutdownError(t *testing.T) {
+	setup()
+	defer teardown()
+	mux.HandleFunc("/v2/droplets/503/actions", func(w http.ResponseWriter, r *http.Request) {
+		rBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("Expected parse request body without errors but has %q", err)
+		}
+		if strings.Contains(string(rBody), "shutdown") {
+			w.WriteHeader(201)
+			action := `{
+				"action": {
+					"id": 36077293,
+					"status": "in-progress",
+					"type": "shutdown",
+					"started_at": "2014-11-04T17:08:03Z",
+					"completed_at": null,
+					"resource_id": 503,
+					"resource_type": "droplet",
+					"region": {"slug": "nyc3"},
 				}
 			}`
 			fmt.Fprintln(w, action)
@@ -300,8 +338,7 @@ func TestDeleteMachine(t *testing.T) {
 					"completed_at": null,
 					"resource_id": 503,
 					"resource_type": "droplet",
-					"region": "nyc2",
-					"region_slug": "nyc2"
+					"region": {"slug": "nyc3"}
 				}
 			}`
 			fmt.Fprintln(w, action)
@@ -316,5 +353,68 @@ func TestDeleteMachine(t *testing.T) {
 	err := do.DeleteMachine(machine)
 	if err != nil {
 		t.Errorf("Expected run without errors but has %q", err)
+	}
+}
+
+func TestDeleteMachineWithShutdownErrorAndPowerOff(t *testing.T) {
+	setup()
+	defer teardown()
+	mux.HandleFunc("/v2/droplets/503/actions", func(w http.ResponseWriter, r *http.Request) {
+		rBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("Expected parse request body without errors but has %q", err)
+		}
+		if strings.Contains(string(rBody), "shutdown") {
+			w.WriteHeader(201)
+			action := `{
+				"action": {
+					"id": 36077293,
+					"status": "in-progress",
+					"type": "shutdown",
+					"started_at": "2014-11-04T17:08:03Z",
+					"completed_at": null,
+					"resource_id": 503,
+					"resource_type": "droplet",
+					"region": {"slug": "nyc3"},
+				}
+			}`
+			fmt.Fprintln(w, action)
+			return
+		}
+		if strings.Contains(string(rBody), "power_off") {
+			w.WriteHeader(201)
+			action := `{
+				"action": {
+					"id": 36077293,
+					"status": "in-progress",
+					"type": "power_off",
+					"started_at": "2014-11-04T17:08:03Z",
+					"completed_at": null,
+					"resource_id": 503,
+					"resource_type": "droplet",
+					"region": {"slug": "nyc3"},
+				}
+			}`
+			fmt.Fprintln(w, action)
+			return
+		}
+	})
+	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	})
+	machine := &iaas.Machine{ID: "503"}
+	do := &Digitalocean{}
+	err := do.DeleteMachine(machine)
+	if err == nil {
+		t.Errorf("Expected run errors but not has %q", err)
+	}
+}
+
+func TestDeleteMachineWrongAuth(t *testing.T) {
+	os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
+	do := &Digitalocean{}
+	err := do.DeleteMachine(&iaas.Machine{ID: "503"})
+	if err == nil {
+		t.Errorf("expected erros but run without errors")
 	}
 }
