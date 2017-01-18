@@ -114,3 +114,18 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	}
 	return
 }
+
+// DeleteMachine Shutdown and Delete a droplet
+func (do *Digitalocean) DeleteMachine(mac *iaas.Machine) (err error) {
+	id, _ := strconv.Atoi(mac.ID)
+	_, _, err = do.client.DropletActions.Shutdown(id)
+	if err != nil {
+		// Power off force Shutdown
+		_, _, err = do.client.DropletActions.PowerOff(id)
+		if err != nil {
+			return
+		}
+	}
+	_, err = do.client.Droplets.Delete(id)
+	return
+}
