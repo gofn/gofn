@@ -225,8 +225,8 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 		}
 		if r.Method == http.MethodGet {
 			w.WriteHeader(200)
-		}
-		keys := `{
+
+			keys := `{
 			"ssh_keys": [
 				{
 				"id": 512189,
@@ -236,7 +236,8 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 				}
 			]
 		}`
-		fmt.Fprintln(w, keys)
+			fmt.Fprintln(w, keys)
+		}
 	})
 	do := &Digitalocean{}
 	m, err := do.CreateMachine()
