@@ -2,10 +2,14 @@ package digitalocean
 
 import (
 	"fmt"
+	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
+
+	"github.com/nuveo/gofn/iaas"
 )
 
 var (
@@ -258,5 +262,59 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 	}
 	if m.SSHKeysID[0] != 512189 {
 		t.Errorf("Expected SSHKeysID = 512189 but found %q", m.SSHKeysID[0])
+	}
+}
+
+func TestDeleteMachine(t *testing.T) {
+	mux.HandleFunc("/v2/droplets/503/actions", func(w http.ResponseWriter, r *http.Request) {
+		rBody, err := ioutil.ReadAll(r.Body)
+		if err != nil {
+			t.Fatalf("Expected parse request body without errors but has %q", err)
+		}
+		if strings.Contains(string(rBody), "shutdown") {
+			w.WriteHeader(201)
+			action := `{
+				"action": {
+					"id": 36077293,
+					"status": "in-progress",
+					"type": "shutdown",
+					"started_at": "2014-11-04T17:08:03Z",
+					"completed_at": null,
+					"resource_id": 503,
+					"resource_type": "droplet",
+					"region": "nyc2",
+					"region_slug": "nyc2"
+				}
+			}`
+			fmt.Fprintln(w, action)
+			return
+		}
+		if strings.Contains(string(rBody), "power_off") {
+			w.WriteHeader(201)
+			action := `{
+				"action": {
+					"id": 36077293,
+					"status": "in-progress",
+					"type": "power_off",
+					"started_at": "2014-11-04T17:08:03Z",
+					"completed_at": null,
+					"resource_id": 503,
+					"resource_type": "droplet",
+					"region": "nyc2",
+					"region_slug": "nyc2"
+				}
+			}`
+			fmt.Fprintln(w, action)
+			return
+		}
+	})
+	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(204)
+	})
+	machine := &iaas.Machine{ID: "503"}
+	do := &Digitalocean{}
+	err := do.DeleteMachine(machine)
+	if err != nil {
+		t.Errorf("Expected run without errors but has %q", err)
 	}
 }
