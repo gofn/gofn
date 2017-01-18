@@ -46,6 +46,26 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
+	snapshots, _, err := do.client.Snapshots.List(nil)
+	if err != nil {
+		return
+	}
+	snapshot := godo.Snapshot{}
+	for _, snapshot = range snapshots {
+		if snapshot.Name == "Gofn" {
+			break
+		}
+	}
+	image := godo.DropletCreateImage{
+		Slug: "ubuntu-16-10-x64",
+	}
+	if snapshot.Name != "" {
+		id, _ := strconv.Atoi(snapshot.ID)
+		image = godo.DropletCreateImage{
+			ID: id,
+		}
+	}
+
 	sshKey, err := do.getSSHKeyForDroplet()
 	if err != nil {
 		return
@@ -54,9 +74,7 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 		Name:   "gofn",
 		Region: "nyc3",
 		Size:   "512mb",
-		Image: godo.DropletCreateImage{
-			Slug: "ubuntu-16-10-x64",
-		},
+		Image:  image,
 		SSHKeys: []godo.DropletCreateSSHKey{
 			{
 				ID:          sshKey.ID,
@@ -131,5 +149,19 @@ func (do *Digitalocean) DeleteMachine(mac *iaas.Machine) (err error) {
 		}
 	}
 	_, err = do.client.Droplets.Delete(id)
+	return
+}
+
+// CreateSnapshot Create a snapshot from the machine
+func (do *Digitalocean) CreateSnashot(mac *iaas.Machine) (err error) {
+	id, _ := strconv.Atoi(mac.ID)
+	err = do.Auth()
+	if err != nil {
+		return
+	}
+	_, _, err = do.client.DropletActions.Snapshot(id, "Gofn")
+	if err != nil {
+		return
+	}
 	return
 }

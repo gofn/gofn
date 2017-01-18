@@ -5,7 +5,7 @@ type Iaas interface {
 	Auth() error
 	CreateMachine() (*Machine, error)
 	DeleteMachine(*Machine) error
-	CreateSnapshot() error
+	CreateSnapshot(*Machine) error
 	ExecCommand() ([]byte, error)
 }
 
