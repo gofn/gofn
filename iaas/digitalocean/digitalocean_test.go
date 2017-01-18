@@ -56,6 +56,7 @@ func TestAuth(t *testing.T) {
 func TestCreateMachine(t *testing.T) {
 	setup()
 	defer teardown()
+	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -94,8 +95,7 @@ func TestCreateMachine(t *testing.T) {
 		}
 		if r.Method == http.MethodGet {
 			w.WriteHeader(200)
-		}
-		keys := `{
+			keys := `{
 			"ssh_keys": [
 				{
 				"id": 512189,
@@ -105,7 +105,8 @@ func TestCreateMachine(t *testing.T) {
 				}
 			]
 		}`
-		fmt.Fprintln(w, keys)
+			fmt.Fprintln(w, keys)
+		}
 	})
 	do := &Digitalocean{}
 	m, err := do.CreateMachine()
@@ -156,6 +157,34 @@ func TestCreateMachineWrongIP(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json; charset=utf8")
 		fmt.Fprintln(w, droplet)
 	})
+	mux.HandleFunc("/v2/account/keys", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(201)
+			key := `{
+				"ssh_key": {
+					"id": 512189,
+					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+					"name": "Gofn"
+				}
+			}`
+			fmt.Fprintln(w, key)
+		}
+		if r.Method == http.MethodGet {
+			w.WriteHeader(200)
+			keys := `{
+			"ssh_keys": [
+				{
+				"id": 512189,
+				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+				"name": "Gofn"
+				}
+			]
+		}`
+			fmt.Fprintln(w, keys)
+		}
+	})
 	do := &Digitalocean{}
 	_, err := do.CreateMachine()
 	if err == nil {
@@ -181,6 +210,34 @@ func TestCreateMachineRequestError(t *testing.T) {
 		w.Header().Set("Content-Type", "application/json; charset=utf8")
 		fmt.Fprintln(w, droplet)
 	})
+	mux.HandleFunc("/v2/account/keys", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(201)
+			key := `{
+				"ssh_key": {
+					"id": 512189,
+					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+					"name": "Gofn"
+				}
+			}`
+			fmt.Fprintln(w, key)
+		}
+		if r.Method == http.MethodGet {
+			w.WriteHeader(200)
+			keys := `{
+			"ssh_keys": [
+				{
+				"id": 512189,
+				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+				"name": "Gofn"
+				}
+			]
+		}`
+			fmt.Fprintln(w, keys)
+		}
+	})
 	do := &Digitalocean{}
 	_, err := do.CreateMachine()
 	if err == nil {
@@ -191,6 +248,7 @@ func TestCreateMachineRequestError(t *testing.T) {
 func TestCreateMachineWithNewSSHKey(t *testing.T) {
 	setup()
 	defer teardown()
+	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -222,7 +280,7 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 					"id": 512189,
 					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-					"name": "my key"
+					"name": "my_key"
 				}
 			}`
 			fmt.Fprintln(w, key)
@@ -236,7 +294,7 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 				"id": 512189,
 				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-				"name": "Gofn"
+				"name": "my_key"
 				}
 			]
 		}`
@@ -262,6 +320,258 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 	}
 	if m.SSHKeysID[0] != 512189 {
 		t.Errorf("Expected SSHKeysID = 512189 but found %q", m.SSHKeysID[0])
+	}
+}
+
+func TestCreateMachineWithWrongSSHKey(t *testing.T) {
+	setup()
+	defer teardown()
+	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
+	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("Expected method POST but request method is %s", r.Method)
+		}
+		droplet := `{"droplet": {
+						"id": 1,
+						"name": "gofn",
+						"region": {"slug": "nyc3"},
+						"status": "new",
+						"image": {"slug": "ubuntu-16-10-x64"},
+						"networks": {
+							"v4":[
+								{
+									"ip_address": "104.131.186.241",
+									"type": "public"
+								}
+							]
+						}
+					}
+				}`
+		w.Header().Set("Content-Type", "application/json; charset=utf8")
+		fmt.Fprintln(w, droplet)
+	})
+	mux.HandleFunc("/v2/account/keys", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(201)
+			key := `{
+				"ssh_key": {
+					"id": 512189,
+					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+					"name": "my_key",
+				}
+			}`
+			fmt.Fprintln(w, key)
+		}
+		if r.Method == http.MethodGet {
+			w.WriteHeader(200)
+
+			keys := `{
+			"ssh_keys": [
+				{
+				"id": 512189,
+				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+				"name": "my_key"
+				}
+			]
+		}`
+			fmt.Fprintln(w, keys)
+		}
+	})
+	do := &Digitalocean{}
+	_, err := do.CreateMachine()
+	if err == nil {
+		t.Fatalf("Expected run with errors but not has %q", err)
+	}
+}
+
+func TestCreateMachineWithWrongSSHKeyList(t *testing.T) {
+	setup()
+	defer teardown()
+	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
+	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("Expected method POST but request method is %s", r.Method)
+		}
+		droplet := `{"droplet": {
+						"id": 1,
+						"name": "gofn",
+						"region": {"slug": "nyc3"},
+						"status": "new",
+						"image": {"slug": "ubuntu-16-10-x64"},
+						"networks": {
+							"v4":[
+								{
+									"ip_address": "104.131.186.241",
+									"type": "public"
+								}
+							]
+						}
+					}
+				}`
+		w.Header().Set("Content-Type", "application/json; charset=utf8")
+		fmt.Fprintln(w, droplet)
+	})
+	mux.HandleFunc("/v2/account/keys", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(201)
+			key := `{
+				"ssh_key": {
+					"id": 512189,
+					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+					"name": "my_key"
+				}
+			}`
+			fmt.Fprintln(w, key)
+		}
+		if r.Method == http.MethodGet {
+			w.WriteHeader(200)
+
+			keys := `{
+			"ssh_keys": [
+				{
+				"id": 512189,
+				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+				"name": "my_key",
+				}
+			]
+		}`
+			fmt.Fprintln(w, keys)
+		}
+	})
+	do := &Digitalocean{}
+	_, err := do.CreateMachine()
+	if err == nil {
+		t.Fatalf("Expected run with errors but not has %q", err)
+	}
+}
+
+func TestCreateMachineWithoutSSHKey(t *testing.T) {
+	setup()
+	defer teardown()
+	os.Setenv("GOFN_SSH_FILE_PATH", "")
+	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("Expected method POST but request method is %s", r.Method)
+		}
+		droplet := `{"droplet": {
+						"id": 1,
+						"name": "gofn",
+						"region": {"slug": "nyc3"},
+						"status": "new",
+						"image": {"slug": "ubuntu-16-10-x64"},
+						"networks": {
+							"v4":[
+								{
+									"ip_address": "104.131.186.241",
+									"type": "public"
+								}
+							]
+						}
+					}
+				}`
+		w.Header().Set("Content-Type", "application/json; charset=utf8")
+		fmt.Fprintln(w, droplet)
+	})
+	mux.HandleFunc("/v2/account/keys", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(201)
+			key := `{
+				"ssh_key": {
+					"id": 512189,
+					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+					"name": "my_key",
+				}
+			}`
+			fmt.Fprintln(w, key)
+		}
+		if r.Method == http.MethodGet {
+			w.WriteHeader(200)
+
+			keys := `{
+			"ssh_keys": [
+				{
+				"id": 512189,
+				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+				"name": "my_key"
+				}
+			]
+		}`
+			fmt.Fprintln(w, keys)
+		}
+	})
+	do := &Digitalocean{}
+	_, err := do.CreateMachine()
+	if err == nil {
+		t.Fatalf("Expected run with errors but not has %q", err)
+	}
+}
+
+func TestCreateMachineWithWrongSSHKeyPath(t *testing.T) {
+	setup()
+	defer teardown()
+	os.Setenv("GOFN_SSH_FILE_PATH", "test/bla.pub")
+	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method != http.MethodPost {
+			t.Fatalf("Expected method POST but request method is %s", r.Method)
+		}
+		droplet := `{"droplet": {
+						"id": 1,
+						"name": "gofn",
+						"region": {"slug": "nyc3"},
+						"status": "new",
+						"image": {"slug": "ubuntu-16-10-x64"},
+						"networks": {
+							"v4":[
+								{
+									"ip_address": "104.131.186.241",
+									"type": "public"
+								}
+							]
+						}
+					}
+				}`
+		w.Header().Set("Content-Type", "application/json; charset=utf8")
+		fmt.Fprintln(w, droplet)
+	})
+	mux.HandleFunc("/v2/account/keys", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(201)
+			key := `{
+				"ssh_key": {
+					"id": 512189,
+					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+					"name": "my_key",
+				}
+			}`
+			fmt.Fprintln(w, key)
+		}
+		if r.Method == http.MethodGet {
+			w.WriteHeader(200)
+
+			keys := `{
+			"ssh_keys": [
+				{
+				"id": 512189,
+				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+				"name": "my_key"
+				}
+			]
+		}`
+			fmt.Fprintln(w, keys)
+		}
+	})
+	do := &Digitalocean{}
+	_, err := do.CreateMachine()
+	if err == nil {
+		t.Fatalf("Expected run with errors but not has %q", err)
 	}
 }
 
