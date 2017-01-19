@@ -20,6 +20,11 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	keysDir = "./.gofn/keys"
+	keyName = "id_rsa"
+)
+
 // Digitalocean difinition
 type Digitalocean struct {
 	iaas.Machine
@@ -110,7 +115,7 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 	return
 }
 
-func generateFNSSHKey() err {
+func generateFNSSHKey() (err error) {
 	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
 	if err != nil {
 		return
@@ -122,18 +127,12 @@ func generateFNSSHKey() err {
 		Bytes:   privateKeyDer,
 	}
 	privateKeyPem := pem.EncodeToMemory(&privateKeyBlock)
-	var usr *user.User
-	usr, err = user.Current()
+	path := filepath.Join(keysDir, keyName)
+	err = os.MkdirAll(keysDir, 0644)
 	if err != nil {
 		return
 	}
-	gofnKeysPath := filepath.Join(usr.HomeDir, "/.gofn/keys")
-	path := filepath.Join(gofnKeysPath, "id_rsa")
-	err = os.MkdirAll(gofnKeysPath)
-	if err != nil {
-		return
-	}
-	ioutil.Writefile(path, privateKeyPem, 0644)
+	ioutil.WriteFile(path, privateKeyPem, 0644)
 	return
 }
 
@@ -150,9 +149,13 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	}
 	sshFilePath := os.Getenv("GOFN_SSH_PUBLICKEY_PATH")
 	if sshFilePath == "" {
-		k, err := rsa.GenerateKey(rand.Reader, 4096)
-		// verifica se ela existe
-		// cria uma chave em ~/.gofn/keys/id_rsa
+		path := filepath.Join(keysDir, keyName)
+		if !existsKey(path) {
+			if err = generateFNSSHKey(); err != nil {
+				return
+			}
+		}
+		sshFilePath = path
 	}
 	content, err := ioutil.ReadFile(sshFilePath)
 	if err != nil {
@@ -189,7 +192,7 @@ func (do *Digitalocean) DeleteMachine(mac *iaas.Machine) (err error) {
 }
 
 // CreateSnapshot Create a snapshot from the machine
-func (do *Digitalocean) CreateSnashot(mac *iaas.Machine) (err error) {
+func (do *Digitalocean) CreateSnapshot(mac *iaas.Machine) (err error) {
 	id, _ := strconv.Atoi(mac.ID)
 	err = do.Auth()
 	if err != nil {
@@ -244,4 +247,9 @@ func (do *Digitalocean) ExecCommand(cmd string) (output []byte, err error) {
 		return
 	}
 	return
+}
+
+func existsKey(path string) bool {
+	_, err := os.Stat(path)
+	return err == nil || os.IsExist(err)
 }

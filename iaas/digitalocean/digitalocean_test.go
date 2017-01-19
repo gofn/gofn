@@ -884,7 +884,7 @@ func TestCreateSnapshot(t *testing.T) {
 
 	mac := &iaas.Machine{ID: "123"}
 	do := &Digitalocean{}
-	err := do.CreateSnashot(mac)
+	err := do.CreateSnapshot(mac)
 	if err != nil {
 		t.Errorf("expected run without errors but has %q", err)
 	}
@@ -893,7 +893,7 @@ func TestCreateSnapshot(t *testing.T) {
 func TestCreateSnapshotWrongAuth(t *testing.T) {
 	os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
 	do := &Digitalocean{}
-	err := do.CreateSnashot(&iaas.Machine{ID: "503"})
+	err := do.CreateSnapshot(&iaas.Machine{ID: "503"})
 	if err == nil {
 		t.Errorf("expected errors but run without errors")
 	}
@@ -923,7 +923,7 @@ func TestCreateSnapshotActionError(t *testing.T) {
 
 	mac := &iaas.Machine{ID: "123"}
 	do := &Digitalocean{}
-	err := do.CreateSnashot(mac)
+	err := do.CreateSnapshot(mac)
 	if err == nil {
 		t.Errorf("expected run with errors but not has")
 	}
