@@ -6,7 +6,7 @@ type Iaas interface {
 	CreateMachine() (*Machine, error)
 	DeleteMachine(*Machine) error
 	CreateSnapshot(*Machine) error
-	ExecCommand() ([]byte, error)
+	ExecCommand(cmd string) ([]byte, error)
 }
 
 // Machine defines a generic machine

@@ -1,14 +1,22 @@
 package digitalocean
 
 import (
+	"crypto/rsa"
+	"crypto/x509"
+	"encoding/pem"
 	"errors"
 	"io/ioutil"
 	"net/url"
 	"os"
+	"os/user"
+	"path/filepath"
 	"strconv"
+
+	"crypto/rand"
 
 	"github.com/digitalocean/godo"
 	"github.com/nuveo/gofn/iaas"
+	"golang.org/x/crypto/ssh"
 	"golang.org/x/oauth2"
 )
 
@@ -57,7 +65,7 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 		}
 	}
 	image := godo.DropletCreateImage{
-		Slug: "ubuntu-16-10-x64",
+		Slug: "debian-8-x64",
 	}
 	if snapshot.Name != "" {
 		id, _ := strconv.Atoi(snapshot.ID)
@@ -72,7 +80,7 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 	}
 	createRequest := &godo.DropletCreateRequest{
 		Name:   "gofn",
-		Region: "nyc3",
+		Region: "nyc1",
 		Size:   "512mb",
 		Image:  image,
 		SSHKeys: []godo.DropletCreateSSHKey{
@@ -102,6 +110,33 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 	return
 }
 
+func generateFNSSHKey() err {
+	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+	if err != nil {
+		return
+	}
+	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
+	privateKeyBlock := pem.Block{
+		Type:    "RSA PRIVATE KEY",
+		Headers: nil,
+		Bytes:   privateKeyDer,
+	}
+	privateKeyPem := pem.EncodeToMemory(&privateKeyBlock)
+	var usr *user.User
+	usr, err = user.Current()
+	if err != nil {
+		return
+	}
+	gofnKeysPath := filepath.Join(usr.HomeDir, "/.gofn/keys")
+	path := filepath.Join(gofnKeysPath, "id_rsa")
+	err = os.MkdirAll(gofnKeysPath)
+	if err != nil {
+		return
+	}
+	ioutil.Writefile(path, privateKeyPem, 0644)
+	return
+}
+
 func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	sshKeys, _, err := do.client.Keys.List(nil)
 	if err != nil {
@@ -109,14 +144,15 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	}
 	for _, key := range sshKeys {
 		sshKey = &key
-		if sshKey.Name == "Gofn" {
+		if sshKey.Name == "GOFN" {
 			return
 		}
 	}
-	sshFilePath := os.Getenv("GOFN_SSH_FILE_PATH")
+	sshFilePath := os.Getenv("GOFN_SSH_PUBLICKEY_PATH")
 	if sshFilePath == "" {
-		err = errors.New("You must provide a SSH file path")
-		return
+		k, err := rsa.GenerateKey(rand.Reader, 4096)
+		// verifica se ela existe
+		// cria uma chave em ~/.gofn/keys/id_rsa
 	}
 	content, err := ioutil.ReadFile(sshFilePath)
 	if err != nil {
@@ -160,6 +196,50 @@ func (do *Digitalocean) CreateSnashot(mac *iaas.Machine) (err error) {
 		return
 	}
 	_, _, err = do.client.DropletActions.Snapshot(id, "Gofn")
+	if err != nil {
+		return
+	}
+	return
+}
+
+func publicKeyFile(file string) ssh.AuthMethod {
+	buffer, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil
+	}
+
+	key, err := ssh.ParsePrivateKey(buffer)
+	if err != nil {
+		return nil
+	}
+	return ssh.PublicKeys(key)
+}
+
+func (do *Digitalocean) ExecCommand(cmd string) (output []byte, err error) {
+	pkPath := os.Getenv("GO_FN_PRIVATEKEY_PATH")
+	if pkPath == "" {
+		var usr *user.User
+		usr, err = user.Current()
+		if err != nil {
+			return
+		}
+		pkPath = filepath.Join(usr.HomeDir, "/.gofn/keys/id_rsa")
+	}
+	sshConfig := &ssh.ClientConfig{
+		User: "root",
+		Auth: []ssh.AuthMethod{
+			publicKeyFile(pkPath),
+		},
+	}
+	connection, err := ssh.Dial("tcp", do.IP, sshConfig)
+	if err != nil {
+		return
+	}
+	session, err := connection.NewSession()
+	if err != nil {
+		return
+	}
+	output, err = session.CombinedOutput(cmd)
 	if err != nil {
 		return
 	}

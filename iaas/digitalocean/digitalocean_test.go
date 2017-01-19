@@ -116,7 +116,7 @@ func TestAuth(t *testing.T) {
 func TestCreateMachine(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
+	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "testdata/fake_ssh.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -311,7 +311,7 @@ func TestCreateMachineRequestError(t *testing.T) {
 func TestCreateMachineWithNewSSHKey(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
+	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "testdata/fake_ssh.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -390,7 +390,7 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 func TestCreateMachineWithWrongSSHKey(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
+	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "testdata/fake_ssh.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -454,7 +454,7 @@ func TestCreateMachineWithWrongSSHKey(t *testing.T) {
 func TestCreateMachineWithWrongSSHKeyList(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
+	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "testdata/fake_ssh.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -518,7 +518,7 @@ func TestCreateMachineWithWrongSSHKeyList(t *testing.T) {
 func TestCreateMachineWithoutSSHKey(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_FILE_PATH", "")
+	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -582,7 +582,7 @@ func TestCreateMachineWithoutSSHKey(t *testing.T) {
 func TestCreateMachineWithWrongSSHKeyPath(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_FILE_PATH", "test/bla.pub")
+	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "test/bla.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -646,7 +646,7 @@ func TestCreateMachineWithWrongSSHKeyPath(t *testing.T) {
 func TestCreateMachineWrongSnapshotList(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_FILE_PATH", "testdata/fake_ssh.pub")
+	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "testdata/fake_ssh.pub")
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
