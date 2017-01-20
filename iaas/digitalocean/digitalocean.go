@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/url"
 	"os"
-	"os/user"
 	"path/filepath"
 	"strconv"
 
@@ -20,9 +19,10 @@ import (
 	"golang.org/x/oauth2"
 )
 
-const (
-	keysDir = "./.gofn/keys"
-	keyName = "id_rsa"
+var (
+	keysDir        = "./.gofn/keys"
+	privateKeyName = "id_rsa"
+	publicKeyName  = "id_rsa.pub"
 )
 
 // Digitalocean difinition
@@ -115,8 +115,36 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 	return
 }
 
-func generateFNSSHKey() (err error) {
-	privateKey, err := rsa.GenerateKey(rand.Reader, 4096)
+func writePEM(path string, content []byte, filePermission os.FileMode, dirPermission os.FileMode) (err error) {
+	err = os.MkdirAll(keysDir, dirPermission)
+	if err != nil {
+		return
+	}
+	err = ioutil.WriteFile(path, content, filePermission)
+	return
+}
+
+func generatePublicKey(privateKey *rsa.PrivateKey) (err error) {
+	publicKey := privateKey.PublicKey
+	publicKeyDer, err := x509.MarshalPKIXPublicKey(&publicKey)
+	if err != nil {
+		return
+	}
+
+	publicKeyBlock := pem.Block{
+		Type:    "PUBLIC KEY",
+		Headers: nil,
+		Bytes:   publicKeyDer,
+	}
+	publicKeyPem := pem.EncodeToMemory(&publicKeyBlock)
+
+	path := filepath.Join(keysDir, publicKeyName)
+	err = writePEM(path, publicKeyPem, 0644, 0700)
+	return
+}
+
+func generatePrivateKey(bits int) (privateKey *rsa.PrivateKey, err error) {
+	privateKey, err = rsa.GenerateKey(rand.Reader, bits)
 	if err != nil {
 		return
 	}
@@ -127,12 +155,17 @@ func generateFNSSHKey() (err error) {
 		Bytes:   privateKeyDer,
 	}
 	privateKeyPem := pem.EncodeToMemory(&privateKeyBlock)
-	path := filepath.Join(keysDir, keyName)
-	err = os.MkdirAll(keysDir, 0644)
+	path := filepath.Join(keysDir, privateKeyName)
+	err = writePEM(path, privateKeyPem, 0600, 0700)
+	return
+}
+
+func generateFNSSHKey(bits int) (err error) {
+	privateKey, err := generatePrivateKey(bits)
 	if err != nil {
 		return
 	}
-	ioutil.WriteFile(path, privateKeyPem, 0644)
+	err = generatePublicKey(privateKey)
 	return
 }
 
@@ -149,9 +182,9 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	}
 	sshFilePath := os.Getenv("GOFN_SSH_PUBLICKEY_PATH")
 	if sshFilePath == "" {
-		path := filepath.Join(keysDir, keyName)
+		path := filepath.Join(keysDir, publicKeyName)
 		if !existsKey(path) {
-			if err = generateFNSSHKey(); err != nil {
+			if err = generateFNSSHKey(4096); err != nil {
 				return
 			}
 		}
@@ -221,12 +254,7 @@ func publicKeyFile(file string) ssh.AuthMethod {
 func (do *Digitalocean) ExecCommand(cmd string) (output []byte, err error) {
 	pkPath := os.Getenv("GO_FN_PRIVATEKEY_PATH")
 	if pkPath == "" {
-		var usr *user.User
-		usr, err = user.Current()
-		if err != nil {
-			return
-		}
-		pkPath = filepath.Join(usr.HomeDir, "/.gofn/keys/id_rsa")
+		pkPath = filepath.Join(keysDir, privateKeyName)
 	}
 	sshConfig := &ssh.ClientConfig{
 		User: "root",
