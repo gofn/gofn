@@ -736,9 +736,9 @@ func TestDeleteMachine(t *testing.T) {
 	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(204)
 	})
-	machine := &iaas.Machine{ID: "503"}
 	do := &Digitalocean{}
-	err := do.DeleteMachine(machine)
+	do.Machine = iaas.Machine{ID: "503"}
+	err := do.DeleteMachine()
 	if err != nil {
 		t.Errorf("Expected run without errors but has %q", err)
 	}
@@ -790,9 +790,9 @@ func TestDeleteMachineWithShutdownError(t *testing.T) {
 	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(204)
 	})
-	machine := &iaas.Machine{ID: "503"}
 	do := &Digitalocean{}
-	err := do.DeleteMachine(machine)
+	do.Machine = iaas.Machine{ID: "503"}
+	err := do.DeleteMachine()
 	if err != nil {
 		t.Errorf("Expected run without errors but has %q", err)
 	}
@@ -844,9 +844,9 @@ func TestDeleteMachineWithShutdownErrorAndPowerOff(t *testing.T) {
 	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(204)
 	})
-	machine := &iaas.Machine{ID: "503"}
 	do := &Digitalocean{}
-	err := do.DeleteMachine(machine)
+	do.Machine = iaas.Machine{ID: "503"}
+	err := do.DeleteMachine()
 	if err == nil {
 		t.Errorf("expected run errors but not has %q", err)
 	}
@@ -855,7 +855,8 @@ func TestDeleteMachineWithShutdownErrorAndPowerOff(t *testing.T) {
 func TestDeleteMachineWrongAuth(t *testing.T) {
 	os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
 	do := &Digitalocean{}
-	err := do.DeleteMachine(&iaas.Machine{ID: "503"})
+	do.Machine = iaas.Machine{ID: "503"}
+	err := do.DeleteMachine()
 	if err == nil {
 		t.Errorf("expected errors but run without errors")
 	}
@@ -883,9 +884,9 @@ func TestCreateSnapshot(t *testing.T) {
 
 	})
 
-	mac := &iaas.Machine{ID: "123"}
 	do := &Digitalocean{}
-	err := do.CreateSnapshot(mac)
+	do.Machine = iaas.Machine{ID: "123"}
+	err := do.CreateSnapshot()
 	if err != nil {
 		t.Errorf("expected run without errors but has %q", err)
 	}
@@ -894,7 +895,8 @@ func TestCreateSnapshot(t *testing.T) {
 func TestCreateSnapshotWrongAuth(t *testing.T) {
 	os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
 	do := &Digitalocean{}
-	err := do.CreateSnapshot(&iaas.Machine{ID: "503"})
+	do.Machine = iaas.Machine{ID: "503"}
+	err := do.CreateSnapshot()
 	if err == nil {
 		t.Errorf("expected errors but run without errors")
 	}
@@ -922,9 +924,9 @@ func TestCreateSnapshotActionError(t *testing.T) {
 
 	})
 
-	mac := &iaas.Machine{ID: "123"}
 	do := &Digitalocean{}
-	err := do.CreateSnapshot(mac)
+	do.Machine = iaas.Machine{ID: "123"}
+	err := do.CreateSnapshot()
 	if err == nil {
 		t.Errorf("expected run with errors but not has")
 	}

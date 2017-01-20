@@ -9,6 +9,7 @@ import (
 	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
+	"github.com/nuveo/gofn/iaas"
 )
 
 var (
@@ -21,12 +22,17 @@ var (
 
 // VolumeOptions are options to mount a host directory as data volume
 type VolumeOptions struct {
-	Source, Destination string
+	Source      string
+	Destination string
 }
 
 // BuildOptions are options used in the image build
 type BuildOptions struct {
-	ContextDir, Dockerfile, ImageName, RemoteURI string
+	ContextDir string
+	Dockerfile string
+	ImageName  string
+	RemoteURI  string
+	Iaas       iaas.Iaas
 }
 
 // FnClient instantiate a docker client

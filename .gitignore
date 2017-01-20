@@ -26,3 +26,6 @@ coverage.txt
 .DS_Store
 
 .gofn/
+
+id_rsa
+id_rsa.pub

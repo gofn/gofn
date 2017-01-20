@@ -54,7 +54,7 @@ func (do *Digitalocean) Auth() (err error) {
 }
 
 // CreateMachine on digitalocean
-func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
+func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	err = do.Auth()
 	if err != nil {
 		return
@@ -103,7 +103,7 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
-	m = &iaas.Machine{
+	machine = &iaas.Machine{
 		ID:        strconv.Itoa(newDroplet.ID),
 		IP:        ipv4,
 		Image:     newDroplet.Image.Slug,
@@ -111,6 +111,15 @@ func (do *Digitalocean) CreateMachine() (m *iaas.Machine, err error) {
 		Name:      newDroplet.Name,
 		Status:    newDroplet.Status,
 		SSHKeysID: []int{sshKey.ID},
+	}
+	do.Machine = *machine
+	if do.Image == "" {
+		var output []byte
+		output, err = do.ExecCommand("curl https://raw.githubusercontent.com/nuveo/boxos/master/initial.sh | sh")
+		if err != nil {
+			return
+		}
+		println(string(output))
 	}
 	return
 }
@@ -200,8 +209,8 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 }
 
 // DeleteMachine Shutdown and Delete a droplet
-func (do *Digitalocean) DeleteMachine(mac *iaas.Machine) (err error) {
-	id, _ := strconv.Atoi(mac.ID)
+func (do *Digitalocean) DeleteMachine() (err error) {
+	id, _ := strconv.Atoi(do.Machine.ID)
 	err = do.Auth()
 	if err != nil {
 		return
@@ -219,8 +228,8 @@ func (do *Digitalocean) DeleteMachine(mac *iaas.Machine) (err error) {
 }
 
 // CreateSnapshot Create a snapshot from the machine
-func (do *Digitalocean) CreateSnapshot(mac *iaas.Machine) (err error) {
-	id, _ := strconv.Atoi(mac.ID)
+func (do *Digitalocean) CreateSnapshot() (err error) {
+	id, _ := strconv.Atoi(do.Machine.ID)
 	err = do.Auth()
 	if err != nil {
 		return

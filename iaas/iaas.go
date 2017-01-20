@@ -4,8 +4,8 @@ package iaas
 type Iaas interface {
 	Auth() error
 	CreateMachine() (*Machine, error)
-	DeleteMachine(*Machine) error
-	CreateSnapshot(*Machine) error
+	DeleteMachine() error
+	CreateSnapshot() error
 	ExecCommand(cmd string) ([]byte, error)
 }
 

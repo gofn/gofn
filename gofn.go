@@ -8,6 +8,13 @@ import (
 // Run runs the designed image
 func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
 	client := provision.FnClient("")
+	if buildOpts.Iaas != nil {
+		_, err = buildOpts.Iaas.CreateMachine()
+		if err != nil {
+			return
+		}
+		defer buildOpts.Iaas.DeleteMachine()
+	}
 
 	volume := ""
 	if volumeOpts != nil {
