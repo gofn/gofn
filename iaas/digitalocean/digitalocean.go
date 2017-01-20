@@ -126,10 +126,7 @@ func writePEM(path string, content []byte, filePermission os.FileMode, dirPermis
 
 func generatePublicKey(privateKey *rsa.PrivateKey) (err error) {
 	publicKey := privateKey.PublicKey
-	publicKeyDer, err := x509.MarshalPKIXPublicKey(&publicKey)
-	if err != nil {
-		return
-	}
+	publicKeyDer, _ := x509.MarshalPKIXPublicKey(&publicKey)
 
 	publicKeyBlock := pem.Block{
 		Type:    "PUBLIC KEY",
@@ -144,10 +141,7 @@ func generatePublicKey(privateKey *rsa.PrivateKey) (err error) {
 }
 
 func generatePrivateKey(bits int) (privateKey *rsa.PrivateKey, err error) {
-	privateKey, err = rsa.GenerateKey(rand.Reader, bits)
-	if err != nil {
-		return
-	}
+	privateKey, _ = rsa.GenerateKey(rand.Reader, bits)
 	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
 	privateKeyBlock := pem.Block{
 		Type:    "RSA PRIVATE KEY",
@@ -251,6 +245,7 @@ func publicKeyFile(file string) ssh.AuthMethod {
 	return ssh.PublicKeys(key)
 }
 
+// ExecCommand on droplet
 func (do *Digitalocean) ExecCommand(cmd string) (output []byte, err error) {
 	pkPath := os.Getenv("GO_FN_PRIVATEKEY_PATH")
 	if pkPath == "" {

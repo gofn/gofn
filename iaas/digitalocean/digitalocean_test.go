@@ -149,7 +149,7 @@ func TestCreateMachine(t *testing.T) {
 					"id": 512189,
 					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-					"name": "Gofn"
+					"name": "GOFN"
 				}
 			}`
 			fmt.Fprintln(w, key)
@@ -162,7 +162,7 @@ func TestCreateMachine(t *testing.T) {
 				"id": 512189,
 				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-				"name": "Gofn"
+				"name": "GOFN"
 				}
 			]
 		}`
@@ -227,7 +227,7 @@ func TestCreateMachineWrongIP(t *testing.T) {
 					"id": 512189,
 					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-					"name": "Gofn"
+					"name": "GOFN"
 				}
 			}`
 			fmt.Fprintln(w, key)
@@ -240,7 +240,7 @@ func TestCreateMachineWrongIP(t *testing.T) {
 				"id": 512189,
 				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-				"name": "Gofn"
+				"name": "GOFN"
 				}
 			]
 		}`
@@ -281,7 +281,7 @@ func TestCreateMachineRequestError(t *testing.T) {
 					"id": 512189,
 					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-					"name": "Gofn"
+					"name": "GOFN"
 				}
 			}`
 			fmt.Fprintln(w, key)
@@ -294,7 +294,7 @@ func TestCreateMachineRequestError(t *testing.T) {
 				"id": 512189,
 				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-				"name": "Gofn"
+				"name": "GOFN"
 				}
 			]
 		}`
@@ -679,7 +679,7 @@ func TestCreateMachineWrongSnapshotList(t *testing.T) {
 					"id": 512189,
 					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-					"name": "Gofn"
+					"name": "GOFN"
 				}
 			}`
 			fmt.Fprintln(w, key)
@@ -692,7 +692,7 @@ func TestCreateMachineWrongSnapshotList(t *testing.T) {
 				"id": 512189,
 				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
 				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
-				"name": "Gofn"
+				"name": "GOFN"
 				}
 			]
 		}`
@@ -947,5 +947,36 @@ func TestWritePEM(t *testing.T) {
 		if (err == nil) != test.errIsNil {
 			t.Errorf("%v: expected %v but has %v", test, test.errIsNil, err == nil)
 		}
+	}
+}
+
+func TestGeneratePrivateSSHKey(t *testing.T) {
+	private, err := generatePrivateKey(128)
+	if err != nil {
+		t.Errorf("expected run without errors but has %q", err)
+	}
+	if private == nil {
+		t.Errorf("expected private not nil but is nil")
+	}
+}
+
+func TestGeneratePublicSSHKey(t *testing.T) {
+	private, err := generatePrivateKey(128)
+	if err != nil {
+		t.Errorf("expected run without errors but has %q", err)
+	}
+	if private == nil {
+		t.Errorf("expected private not nil but is nil")
+	}
+	err = generatePublicKey(private)
+	if err != nil {
+		t.Errorf("expected run without errors but has %q", err)
+	}
+}
+
+func TestGenerateFNSSHKey(t *testing.T) {
+	err := generateFNSSHKey(128)
+	if err != nil {
+		t.Errorf("expected run without errors but has %q", err)
 	}
 }
