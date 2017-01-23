@@ -2,6 +2,7 @@ package gofn
 
 import (
 	docker "github.com/fsouza/go-dockerclient"
+	"github.com/nuveo/gofn/iaas"
 	"github.com/nuveo/gofn/provision"
 )
 
@@ -9,11 +10,12 @@ import (
 func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
 	client := provision.FnClient("")
 	if buildOpts.Iaas != nil {
-		_, err = buildOpts.Iaas.CreateMachine()
+		var machine *iaas.Machine
+		machine, err = buildOpts.Iaas.CreateMachine()
 		if err != nil {
 			return
 		}
-		defer buildOpts.Iaas.DeleteMachine()
+		defer buildOpts.Iaas.DeleteMachine(machine)
 	}
 
 	volume := ""

@@ -4,9 +4,9 @@ package iaas
 type Iaas interface {
 	Auth() error
 	CreateMachine() (*Machine, error)
-	DeleteMachine() error
-	CreateSnapshot() error
-	ExecCommand(cmd string) ([]byte, error)
+	DeleteMachine(machine *Machine) error
+	CreateSnapshot(machine *Machine) error
+	ExecCommand(machine *Machine, cmd string) ([]byte, error)
 }
 
 // Machine defines a generic machine

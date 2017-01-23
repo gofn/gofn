@@ -27,7 +27,6 @@ var (
 
 // Digitalocean difinition
 type Digitalocean struct {
-	iaas.Machine
 	client *godo.Client
 }
 
@@ -112,10 +111,9 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Status:    newDroplet.Status,
 		SSHKeysID: []int{sshKey.ID},
 	}
-	do.Machine = *machine
-	if do.Image == "" {
+	if machine.Image == "" {
 		var output []byte
-		output, err = do.ExecCommand("curl https://raw.githubusercontent.com/nuveo/boxos/master/initial.sh | sh")
+		output, err = do.ExecCommand(machine, "curl https://raw.githubusercontent.com/nuveo/boxos/master/initial.sh | sh")
 		if err != nil {
 			return
 		}
@@ -209,8 +207,8 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 }
 
 // DeleteMachine Shutdown and Delete a droplet
-func (do *Digitalocean) DeleteMachine() (err error) {
-	id, _ := strconv.Atoi(do.Machine.ID)
+func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
+	id, _ := strconv.Atoi(machine.ID)
 	err = do.Auth()
 	if err != nil {
 		return
@@ -228,8 +226,8 @@ func (do *Digitalocean) DeleteMachine() (err error) {
 }
 
 // CreateSnapshot Create a snapshot from the machine
-func (do *Digitalocean) CreateSnapshot() (err error) {
-	id, _ := strconv.Atoi(do.Machine.ID)
+func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
+	id, _ := strconv.Atoi(machine.ID)
 	err = do.Auth()
 	if err != nil {
 		return
@@ -255,7 +253,7 @@ func publicKeyFile(file string) ssh.AuthMethod {
 }
 
 // ExecCommand on droplet
-func (do *Digitalocean) ExecCommand(cmd string) (output []byte, err error) {
+func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output []byte, err error) {
 	pkPath := os.Getenv("GO_FN_PRIVATEKEY_PATH")
 	if pkPath == "" {
 		pkPath = filepath.Join(keysDir, privateKeyName)
@@ -266,7 +264,7 @@ func (do *Digitalocean) ExecCommand(cmd string) (output []byte, err error) {
 			publicKeyFile(pkPath),
 		},
 	}
-	connection, err := ssh.Dial("tcp", do.IP, sshConfig)
+	connection, err := ssh.Dial("tcp", machine.IP, sshConfig)
 	if err != nil {
 		return
 	}
