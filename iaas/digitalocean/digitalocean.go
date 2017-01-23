@@ -64,7 +64,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	}
 	snapshot := godo.Snapshot{}
 	for _, snapshot = range snapshots {
-		if snapshot.Name == "Gofn" {
+		if snapshot.Name == "GOFN" {
 			break
 		}
 	}
@@ -196,7 +196,7 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 		return
 	}
 	sshKeyRequestCreate := &godo.KeyCreateRequest{
-		Name:      "Gofn",
+		Name:      "GOFN",
 		PublicKey: string(content),
 	}
 	sshKey, _, err = do.client.Keys.Create(sshKeyRequestCreate)
@@ -232,7 +232,7 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 	if err != nil {
 		return
 	}
-	_, _, err = do.client.DropletActions.Snapshot(id, "Gofn")
+	_, _, err = do.client.DropletActions.Snapshot(id, "GOFN")
 	if err != nil {
 		return
 	}

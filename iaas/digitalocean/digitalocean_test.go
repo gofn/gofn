@@ -34,7 +34,7 @@ func defineListSnapshotsEndpoint() {
 		snap := `{"snapshots": [
 								{
 								  "id": "6372321",
-								  "name": "Gofn",
+								  "name": "GOFN",
 								  "regions": [
 									"nyc1",
 									"ams1",
