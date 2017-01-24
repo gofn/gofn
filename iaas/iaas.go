@@ -1,17 +1,19 @@
 package iaas
 
 const (
-	requiredDeps = `mkdir -p  /etc/systemd/system/docker.service.d/
+	RequiredDeps = `mkdir -p  /etc/systemd/system/docker.service.d/
 echo """
 [Service]
 ExecStart=
 ExecStart=/usr/bin/dockerd -H tcp://%s:2375 -H unix:///var/run/docker.sock
 """ > /etc/systemd/system/docker.service.d/custom.conf
 systemctl daemon-reload
-systemctl restart docker`
+systemctl restart docker
+`
 
-	optionalDeps = `curl https://raw.githubusercontent.com/nuveo/boxos/master/initial.sh | sh
-sed -i  's/fd:\/\//fd:\/\/ $DOCKER_OPTS/g' /lib/systemd/system/docker.service`
+	OptionalDeps = `curl https://raw.githubusercontent.com/nuveo/boxos/master/initial.sh | sh
+sed -i  's/fd:\/\//fd:\/\/ $DOCKER_OPTS/g' /lib/systemd/system/docker.service
+`
 )
 
 // Iaas represents a infresture service

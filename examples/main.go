@@ -6,6 +6,7 @@ import (
 	"log"
 
 	"github.com/nuveo/gofn"
+	"github.com/nuveo/gofn/iaas/digitalocean"
 	"github.com/nuveo/gofn/provision"
 )
 
@@ -24,6 +25,7 @@ func main() {
 		Dockerfile: *dockerfile,
 		ImageName:  *imageName,
 		RemoteURI:  *remoteBuildURI,
+		Iaas:       &digitalocean.Digitalocean{},
 	}, &provision.VolumeOptions{
 		Source:      *volumeSource,
 		Destination: *volumeDestination,

@@ -5,11 +5,13 @@ import (
 	"crypto/x509"
 	"encoding/pem"
 	"errors"
+	"fmt"
 	"io/ioutil"
 	"net/url"
 	"os"
 	"path/filepath"
 	"strconv"
+	"time"
 
 	"crypto/rand"
 
@@ -23,6 +25,7 @@ var (
 	keysDir        = "./.gofn/keys"
 	privateKeyName = "id_rsa"
 	publicKeyName  = "id_rsa.pub"
+	SSHPort        = ":22"
 )
 
 // Digitalocean difinition
@@ -63,8 +66,9 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		return
 	}
 	snapshot := godo.Snapshot{}
-	for _, snapshot = range snapshots {
+	for _, s := range snapshots {
 		if snapshot.Name == "GOFN" {
+			snapshot = s
 			break
 		}
 	}
@@ -98,6 +102,11 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
+	newDroplet, err = do.waitNetworkCreated(newDroplet)
+	fmt.Println("%+v", newDroplet)
+	if err != nil {
+		return
+	}
 	ipv4, err := newDroplet.PublicIPv4()
 	if err != nil {
 		return
@@ -111,9 +120,9 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Status:    newDroplet.Status,
 		SSHKeysID: []int{sshKey.ID},
 	}
-	var cmd string
+	cmd := iaas.RequiredDeps
 	if newDroplet.Image.Type != "snapshot" {
-
+		cmd = iaas.OptionalDeps + cmd
 	}
 	_, err = do.ExecCommand(machine, cmd)
 	if err != nil {
@@ -133,17 +142,10 @@ func writePEM(path string, content []byte, filePermission os.FileMode, dirPermis
 
 func generatePublicKey(privateKey *rsa.PrivateKey) (err error) {
 	publicKey := privateKey.PublicKey
-	publicKeyDer, _ := x509.MarshalPKIXPublicKey(&publicKey)
-
-	publicKeyBlock := pem.Block{
-		Type:    "PUBLIC KEY",
-		Headers: nil,
-		Bytes:   publicKeyDer,
-	}
-	publicKeyPem := pem.EncodeToMemory(&publicKeyBlock)
+	pub, _ := ssh.NewPublicKey(&publicKey)
 
 	path := filepath.Join(keysDir, publicKeyName)
-	err = writePEM(path, publicKeyPem, 0644, 0700)
+	err = writePEM(path, ssh.MarshalAuthorizedKey(pub), 0644, 0700)
 	return
 }
 
@@ -190,6 +192,7 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 			}
 		}
 		sshFilePath = path
+
 	}
 	content, err := ioutil.ReadFile(sshFilePath)
 	if err != nil {
@@ -254,7 +257,7 @@ func publicKeyFile(file string) ssh.AuthMethod {
 
 // ExecCommand on droplet
 func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output []byte, err error) {
-	pkPath := os.Getenv("GO_FN_PRIVATEKEY_PATH")
+	pkPath := os.Getenv("GOFN_SSH_PRIVATEKEY_PATH")
 	if pkPath == "" {
 		pkPath = filepath.Join(keysDir, privateKeyName)
 	}
@@ -264,7 +267,8 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 			publicKeyFile(pkPath),
 		},
 	}
-	connection, err := ssh.Dial("tcp", machine.IP, sshConfig)
+	time.Sleep(10 * time.Second)
+	connection, err := ssh.Dial("tcp", machine.IP+SSHPort, sshConfig)
 	if err != nil {
 		return
 	}
@@ -277,6 +281,40 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 		return
 	}
 	return
+}
+
+func (do *Digitalocean) waitNetworkCreated(droplet *godo.Droplet) (upDroplet *godo.Droplet, err error) {
+	timeout := 120
+	quit := make(chan struct{})
+	errs := make(chan error, 1)
+	droplets := make(chan *godo.Droplet, 1)
+	go func() {
+		for {
+			println("rodando...")
+			select {
+			case <-quit:
+				return
+			default:
+				d, _, err := do.client.Droplets.Get(droplet.ID)
+				if err != nil {
+					errs <- err
+					return
+				}
+				if len(d.Networks.V4) > 0 {
+					droplets <- d
+					return
+				}
+			}
+		}
+	}()
+	select {
+	case upDroplet = <-droplets:
+		return upDroplet, nil
+	case err := <-errs:
+		return nil, err
+	case <-time.After(time.Duration(timeout) * time.Second):
+		return nil, errors.New("timed out waiting for machine network")
+	}
 }
 
 func existsKey(path string) bool {

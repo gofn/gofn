@@ -6,6 +6,8 @@ import (
 	"github.com/nuveo/gofn/provision"
 )
 
+const dockerPort = ":2375"
+
 // Run runs the designed image
 func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
 	client := provision.FnClient("")
@@ -15,7 +17,8 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		if err != nil {
 			return
 		}
-		defer buildOpts.Iaas.DeleteMachine(machine)
+		client = provision.FnClient(machine.IP + dockerPort)
+		// defer buildOpts.Iaas.DeleteMachine(machine)
 	}
 
 	volume := ""
