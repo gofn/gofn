@@ -111,7 +111,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Status:    newDroplet.Status,
 		SSHKeysID: []int{sshKey.ID},
 	}
-	if machine.Image == "" {
+	if newDroplet.Image.Type != "snapshot" {
 		var output []byte
 		output, err = do.ExecCommand(machine, "curl https://raw.githubusercontent.com/nuveo/boxos/master/initial.sh | sh")
 		if err != nil {
