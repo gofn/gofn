@@ -103,7 +103,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		return
 	}
 	newDroplet, err = do.waitNetworkCreated(newDroplet)
-	fmt.Println("%+v", newDroplet)
 	if err != nil {
 		return
 	}
@@ -120,8 +119,8 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Status:    newDroplet.Status,
 		SSHKeysID: []int{sshKey.ID},
 	}
-	cmd := iaas.RequiredDeps
-	if newDroplet.Image.Type != "snapshot" {
+	cmd := fmt.Sprintf(iaas.RequiredDeps, machine.IP)
+	if snapshot.Name == "" {
 		cmd = iaas.OptionalDeps + cmd
 	}
 	_, err = do.ExecCommand(machine, cmd)
@@ -143,7 +142,6 @@ func writePEM(path string, content []byte, filePermission os.FileMode, dirPermis
 func generatePublicKey(privateKey *rsa.PrivateKey) (err error) {
 	publicKey := privateKey.PublicKey
 	pub, _ := ssh.NewPublicKey(&publicKey)
-
 	path := filepath.Join(keysDir, publicKeyName)
 	err = writePEM(path, ssh.MarshalAuthorizedKey(pub), 0644, 0700)
 	return
@@ -211,6 +209,8 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 
 // DeleteMachine Shutdown and Delete a droplet
 func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
+	println("Deleting machine")
+	println("machine ", machine.ID, machine.IP)
 	id, _ := strconv.Atoi(machine.ID)
 	err = do.Auth()
 	if err != nil {
@@ -219,12 +219,15 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	_, _, err = do.client.DropletActions.Shutdown(id)
 	if err != nil {
 		// Power off force Shutdown
+		println("Forcing shutdown")
 		_, _, err = do.client.DropletActions.PowerOff(id)
 		if err != nil {
+			println(err.Error())
 			return
 		}
 	}
 	_, err = do.client.Droplets.Delete(id)
+	println(err)
 	return
 }
 
@@ -261,13 +264,14 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 	if pkPath == "" {
 		pkPath = filepath.Join(keysDir, privateKeyName)
 	}
+	println(pkPath)
 	sshConfig := &ssh.ClientConfig{
 		User: "root",
 		Auth: []ssh.AuthMethod{
 			publicKeyFile(pkPath),
 		},
+		Timeout: 600 * time.Second,
 	}
-	time.Sleep(10 * time.Second)
 	connection, err := ssh.Dial("tcp", machine.IP+SSHPort, sshConfig)
 	if err != nil {
 		return
@@ -276,8 +280,10 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 	if err != nil {
 		return
 	}
+	println(cmd)
 	output, err = session.CombinedOutput(cmd)
 	if err != nil {
+		fmt.Println(string(output))
 		return
 	}
 	return

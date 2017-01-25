@@ -17,8 +17,12 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		if err != nil {
 			return
 		}
+		defer buildOpts.Iaas.DeleteMachine(machine)
+		err = buildOpts.Iaas.CreateSnapshot(machine)
+		if err != nil {
+			return
+		}
 		client = provision.FnClient(machine.IP + dockerPort)
-		// defer buildOpts.Iaas.DeleteMachine(machine)
 	}
 
 	volume := ""
