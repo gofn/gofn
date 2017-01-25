@@ -18,6 +18,7 @@ import (
 
 	"github.com/digitalocean/godo"
 	"github.com/nuveo/gofn/iaas"
+	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/ssh"
 	"golang.org/x/oauth2"
 )
@@ -77,8 +78,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Slug: "debian-8-x64",
 	}
 	if snapshot.Name != "" {
-		println("usando snap")
-		fmt.Printf("%+v\n", snapshot)
 		id, _ := strconv.Atoi(snapshot.ID)
 		image = godo.DropletCreateImage{
 			ID: id,
@@ -90,7 +89,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		return
 	}
 	createRequest := &godo.DropletCreateRequest{
-		Name:   "gofn",
+		Name:   fmt.Sprintf("gofn-%s", uuid.NewV4().String()),
 		Region: "nyc1",
 		Size:   "512mb",
 		Image:  image,
@@ -124,8 +123,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	}
 	cmd := fmt.Sprintf(iaas.RequiredDeps, machine.IP)
 	if snapshot.Name == "" {
-		println("nao snap")
-		fmt.Printf("%+v\n", snapshot)
 		cmd = iaas.OptionalDeps + cmd
 	}
 	_, err = do.ExecCommand(machine, cmd)
@@ -220,8 +217,6 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 
 // DeleteMachine Shutdown and Delete a droplet
 func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
-	println("Deleting machine")
-	println("machine ", machine.ID, machine.IP)
 	id, _ := strconv.Atoi(machine.ID)
 	err = do.Auth()
 	if err != nil {
@@ -230,10 +225,8 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	action, _, err := do.client.DropletActions.Shutdown(id)
 	if err != nil {
 		// Power off force Shutdown
-		println("Forcing shutdown")
-		_, _, err = do.client.DropletActions.PowerOff(id)
+		action, _, err = do.client.DropletActions.PowerOff(id)
 		if err != nil {
-			println(err.Error())
 			return
 		}
 	}
@@ -243,21 +236,19 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	ac := make(chan *godo.Action, 1)
 	go func() {
 		for {
-			println("rodando shutdown...")
+			//rodando shutdown...
 			select {
 			case <-quit:
-				println("quit")
 				return
 			default:
 				d, _, err := do.client.DropletActions.Get(id, action.ID)
-				if d.Status == "completed" {
-					println("terminei shutdown")
-					ac <- d
+
+				if err != nil {
+					errs <- err
 					return
 				}
-				if err != nil {
-					println(err.Error())
-					errs <- err
+				if d.Status == "completed" {
+					ac <- d
 					return
 				}
 			}
@@ -292,21 +283,18 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 	ac := make(chan *godo.Action, 1)
 	go func() {
 		for {
-			println("rodando snapshot...")
+			//"rodando snapshot..."
 			select {
 			case <-quit:
-				println("quit")
 				return
 			default:
 				d, _, err := do.client.DropletActions.Get(id, action.ID)
-				if d.Status == "completed" {
-					println("terminei snap")
-					ac <- d
+				if err != nil {
+					errs <- err
 					return
 				}
-				if err != nil {
-					println(err.Error())
-					errs <- err
+				if d.Status == "completed" {
+					ac <- d
 					return
 				}
 			}
@@ -328,7 +316,6 @@ func publicKeyFile(file string) ssh.AuthMethod {
 	if err != nil {
 		return nil
 	}
-
 	key, err := ssh.ParsePrivateKey(buffer)
 	if err != nil {
 		return nil
@@ -342,32 +329,26 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 	if pkPath == "" {
 		pkPath = filepath.Join(keysDir, privateKeyName)
 	}
-	println(pkPath)
 	sshConfig := &ssh.ClientConfig{
 		User: "root",
 		Auth: []ssh.AuthMethod{
 			publicKeyFile(pkPath),
 		},
-		Timeout: (time.Duration(600) * time.Second),
+		Timeout: time.Duration(5) * time.Minute,
 	}
 	conn, err := net.Dial("tcp", machine.IP+sshPort)
-	defer conn.Close()
 	for err != nil {
-		println("net dial for")
 		conn, err = net.Dial("tcp", machine.IP+sshPort)
-		defer conn.Close()
 	}
-	println("dial")
+	defer conn.Close()
 	connection, err := ssh.Dial("tcp", machine.IP+sshPort, sshConfig)
 	if err != nil {
 		return
 	}
-	println("session")
 	session, err := connection.NewSession()
 	if err != nil {
 		return
 	}
-	println(cmd)
 	output, err = session.CombinedOutput(cmd)
 	if err != nil {
 		fmt.Println(string(output))
@@ -383,7 +364,7 @@ func (do *Digitalocean) waitNetworkCreated(droplet *godo.Droplet) (upDroplet *go
 	droplets := make(chan *godo.Droplet, 1)
 	go func() {
 		for {
-			println("rodando...")
+			//wait for network
 			select {
 			case <-quit:
 				return
@@ -393,7 +374,7 @@ func (do *Digitalocean) waitNetworkCreated(droplet *godo.Droplet) (upDroplet *go
 					errs <- err
 					return
 				}
-				if len(d.Networks.V4) > 0 {
+				if len(d.Networks.V4) > 0 && !d.Locked {
 					droplets <- d
 					return
 				}

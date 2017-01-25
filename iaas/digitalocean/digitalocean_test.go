@@ -725,6 +725,7 @@ func TestDeleteMachine(t *testing.T) {
 					"started_at": "2014-11-04T17:08:03Z",
 					"completed_at": null,
 					"resource_id": 503,
+					"status": "completed",
 					"resource_type": "droplet",
 					"region": {"slug": "nyc3"}
 				}
@@ -735,6 +736,34 @@ func TestDeleteMachine(t *testing.T) {
 	})
 	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(204)
+	})
+	mux.HandleFunc("/v2/account/keys", func(w http.ResponseWriter, r *http.Request) {
+		if r.Method == http.MethodPost {
+			w.WriteHeader(201)
+			key := `{
+				"ssh_key": {
+					"id": 512189,
+					"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+					"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+					"name": "GOFN"
+				}
+			}`
+			fmt.Fprintln(w, key)
+		}
+		if r.Method == http.MethodGet {
+			w.WriteHeader(200)
+			keys := `{
+			"ssh_keys": [
+				{
+				"id": 512189,
+				"fingerprint": "3b:16:bf:e4:8b:00:8b:b8:59:8c:a9:d3:f0:19:45:fa",
+				"public_key": "ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAAAQQDDHr/jh2Jy4yALcK4JyWbVkPRaWmhck3IgCoeOO3z1e2dBowLh64QAM+Qb72pxekALga2oi4GvT+TlWNhzPH4V example",
+				"name": "GOFN"
+				}
+			]
+		}`
+			fmt.Fprintln(w, keys)
+		}
 	})
 	do := &Digitalocean{}
 	machine := &iaas.Machine{ID: "503"}
@@ -762,6 +791,7 @@ func TestDeleteMachineWithShutdownError(t *testing.T) {
 					"started_at": "2014-11-04T17:08:03Z",
 					"completed_at": null,
 					"resource_id": 503,
+					"status": "completed",
 					"resource_type": "droplet",
 					"region": {"slug": "nyc3"},
 				}
@@ -779,6 +809,7 @@ func TestDeleteMachineWithShutdownError(t *testing.T) {
 					"started_at": "2014-11-04T17:08:03Z",
 					"completed_at": null,
 					"resource_id": 503,
+					"status": "completed",
 					"resource_type": "droplet",
 					"region": {"slug": "nyc3"}
 				}
