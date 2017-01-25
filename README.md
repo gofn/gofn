@@ -9,6 +9,8 @@ Function process via container provider
 
 ## Premise
 
+[![Join the chat at https://gitter.im/nuveo/gofn](https://badges.gitter.im/nuveo/gofn.svg)](https://gitter.im/nuveo/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+
 - Software makes a task
 - After processing it dies
 - Must put on stdout (print) a string formatted as JSON
