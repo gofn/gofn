@@ -7,6 +7,7 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -25,7 +26,7 @@ var (
 	keysDir        = "./.gofn/keys"
 	privateKeyName = "id_rsa"
 	publicKeyName  = "id_rsa.pub"
-	SSHPort        = ":22"
+	sshPort        = ":22"
 )
 
 // Digitalocean difinition
@@ -67,7 +68,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	}
 	snapshot := godo.Snapshot{}
 	for _, s := range snapshots {
-		if snapshot.Name == "GOFN" {
+		if s.Name == "GOFN" {
 			snapshot = s
 			break
 		}
@@ -76,6 +77,8 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Slug: "debian-8-x64",
 	}
 	if snapshot.Name != "" {
+		println("usando snap")
+		fmt.Printf("%+v\n", snapshot)
 		id, _ := strconv.Atoi(snapshot.ID)
 		image = godo.DropletCreateImage{
 			ID: id,
@@ -121,11 +124,19 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	}
 	cmd := fmt.Sprintf(iaas.RequiredDeps, machine.IP)
 	if snapshot.Name == "" {
+		println("nao snap")
+		fmt.Printf("%+v\n", snapshot)
 		cmd = iaas.OptionalDeps + cmd
 	}
 	_, err = do.ExecCommand(machine, cmd)
 	if err != nil {
 		return
+	}
+	if snapshot.Name == "" {
+		err = do.CreateSnapshot(machine)
+		if err != nil {
+			return
+		}
 	}
 	return
 }
@@ -216,7 +227,7 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	if err != nil {
 		return
 	}
-	_, _, err = do.client.DropletActions.Shutdown(id)
+	action, _, err := do.client.DropletActions.Shutdown(id)
 	if err != nil {
 		// Power off force Shutdown
 		println("Forcing shutdown")
@@ -226,9 +237,42 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 			return
 		}
 	}
-	_, err = do.client.Droplets.Delete(id)
-	println(err)
-	return
+	timeout := 120
+	quit := make(chan struct{})
+	errs := make(chan error, 1)
+	ac := make(chan *godo.Action, 1)
+	go func() {
+		for {
+			println("rodando shutdown...")
+			select {
+			case <-quit:
+				println("quit")
+				return
+			default:
+				d, _, err := do.client.DropletActions.Get(id, action.ID)
+				if d.Status == "completed" {
+					println("terminei shutdown")
+					ac <- d
+					return
+				}
+				if err != nil {
+					println(err.Error())
+					errs <- err
+					return
+				}
+			}
+		}
+	}()
+	select {
+	case action = <-ac:
+		_, err = do.client.Droplets.Delete(id)
+		return
+	case err = <-errs:
+		return
+	case <-time.After(time.Duration(timeout) * time.Second):
+		err = errors.New("timed out waiting for Snhutdown")
+		return
+	}
 }
 
 // CreateSnapshot Create a snapshot from the machine
@@ -238,11 +282,45 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 	if err != nil {
 		return
 	}
-	_, _, err = do.client.DropletActions.Snapshot(id, "GOFN")
+	action, _, err := do.client.DropletActions.Snapshot(id, "GOFN")
 	if err != nil {
 		return
 	}
-	return
+	timeout := 600
+	quit := make(chan struct{})
+	errs := make(chan error, 1)
+	ac := make(chan *godo.Action, 1)
+	go func() {
+		for {
+			println("rodando snapshot...")
+			select {
+			case <-quit:
+				println("quit")
+				return
+			default:
+				d, _, err := do.client.DropletActions.Get(id, action.ID)
+				if d.Status == "completed" {
+					println("terminei snap")
+					ac <- d
+					return
+				}
+				if err != nil {
+					println(err.Error())
+					errs <- err
+					return
+				}
+			}
+		}
+	}()
+	select {
+	case action = <-ac:
+		return
+	case err = <-errs:
+		return
+	case <-time.After(time.Duration(timeout) * time.Second):
+		err = errors.New("timed out waiting for Snapshot")
+		return
+	}
 }
 
 func publicKeyFile(file string) ssh.AuthMethod {
@@ -270,12 +348,21 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 		Auth: []ssh.AuthMethod{
 			publicKeyFile(pkPath),
 		},
-		Timeout: 600 * time.Second,
+		Timeout: (time.Duration(600) * time.Second),
 	}
-	connection, err := ssh.Dial("tcp", machine.IP+SSHPort, sshConfig)
+	conn, err := net.Dial("tcp", machine.IP+sshPort)
+	defer conn.Close()
+	for err != nil {
+		println("net dial for")
+		conn, err = net.Dial("tcp", machine.IP+sshPort)
+		defer conn.Close()
+	}
+	println("dial")
+	connection, err := ssh.Dial("tcp", machine.IP+sshPort, sshConfig)
 	if err != nil {
 		return
 	}
+	println("session")
 	session, err := connection.NewSession()
 	if err != nil {
 		return
