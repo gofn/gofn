@@ -1062,6 +1062,7 @@ func TestCreateSnapshotActionError(t *testing.T) {
 }
 
 func TestWritePEM(t *testing.T) {
+	os.Chmod("testdata/writepem", 0700)
 	for _, test := range []struct {
 		keysDir        string
 		dirPermission  os.FileMode
