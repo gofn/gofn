@@ -67,6 +67,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
+
 	snapshot := godo.Snapshot{}
 	for _, s := range snapshots {
 		if s.Name == "GOFN" {
@@ -104,10 +105,12 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
+
 	newDroplet, err = do.waitNetworkCreated(newDroplet)
 	if err != nil {
 		return
 	}
+
 	ipv4, err := newDroplet.PublicIPv4()
 	if err != nil {
 		return
@@ -242,7 +245,6 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 				return
 			default:
 				d, _, err := do.client.DropletActions.Get(id, action.ID)
-
 				if err != nil {
 					errs <- err
 					return

@@ -32,3 +32,4 @@ id_rsa.pub
 
 .vscode/
 debug/
+profile.out
