@@ -6,7 +6,6 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
-	"path/filepath"
 	"strings"
 	"testing"
 
@@ -1058,26 +1057,6 @@ func TestCreateSnapshotActionError(t *testing.T) {
 	err := do.CreateSnapshot(machine)
 	if err == nil {
 		t.Errorf("expected run with errors but not has")
-	}
-}
-
-func TestWritePEM(t *testing.T) {
-	for _, test := range []struct {
-		keysDir        string
-		dirPermission  os.FileMode
-		filePermission os.FileMode
-		path           string
-		errIsNil       bool
-	}{
-		{"testdata/writepem/wrongpermission/something", 0400, 0644, "./something", false},
-		{"testdata/writepem/onlyread", 0700, 0644, "/", false},
-		{"testdata/writepem/", 0700, 0644, filepath.Join("testdata/writepem/", publicKeyName), true},
-	} {
-		keysDir = test.keysDir
-		err := writePEM(test.path, []byte("..."), test.filePermission, test.dirPermission)
-		if (err == nil) != test.errIsNil {
-			t.Errorf("%v: expected %v but has %v", test, test.errIsNil, err == nil)
-		}
 	}
 }
 
