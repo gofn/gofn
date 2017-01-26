@@ -4,6 +4,7 @@
 [![GoDoc](https://godoc.org/github.com/nuveo/gofn?status.png)](https://godoc.org/github.com/nuveo/gofn)
 [![Go Report Card](https://goreportcard.com/badge/github.com/nuveo/gofn)](https://goreportcard.com/report/github.com/nuveo/gofn)
 [![codecov](https://codecov.io/gh/nuveo/gofn/branch/master/graph/badge.svg)](https://codecov.io/gh/nuveo/gofn)
+[![Join the chat at https://gitter.im/nuveo/gofn](https://badges.gitter.im/nuveo/gofn.svg)](https://gitter.im/nuveo/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Function process via container provider
 
