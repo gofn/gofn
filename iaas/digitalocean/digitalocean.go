@@ -105,7 +105,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
-
 	newDroplet, err = do.waitNetworkCreated(newDroplet)
 	if err != nil {
 		return
@@ -182,16 +181,6 @@ func generateFNSSHKey(bits int) (err error) {
 }
 
 func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
-	sshKeys, _, err := do.client.Keys.List(nil)
-	if err != nil {
-		return
-	}
-	for _, key := range sshKeys {
-		sshKey = &key
-		if sshKey.Name == "GOFN" {
-			return
-		}
-	}
 	sshFilePath := os.Getenv("GOFN_SSH_PUBLICKEY_PATH")
 	if sshFilePath == "" {
 		path := filepath.Join(keysDir, publicKeyName)
@@ -201,11 +190,20 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 			}
 		}
 		sshFilePath = path
-
 	}
 	content, err := ioutil.ReadFile(sshFilePath)
 	if err != nil {
 		return
+	}
+	sshKeys, _, err := do.client.Keys.List(nil)
+	if err != nil {
+		return
+	}
+	for _, key := range sshKeys {
+		sshKey = &key
+		if sshKey.PublicKey == string(content) {
+			return
+		}
 	}
 	sshKeyRequestCreate := &godo.KeyCreateRequest{
 		Name:      "GOFN",
