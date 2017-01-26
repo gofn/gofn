@@ -10,7 +10,7 @@ os:
 
 go:
   - 1.7
- 
+
 before_install:
   - go get -u github.com/kardianos/govendor
   - govendor sync
@@ -20,3 +20,8 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/6ded9a49eadd62bc59da
