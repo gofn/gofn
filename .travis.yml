@@ -10,9 +10,9 @@ os:
 
 go:
   - 1.7
- 
+
 branches:
-  only: 
+  only:
     - master
 
 before_install:
@@ -24,3 +24,8 @@ script:
 
 after_success:
   - bash <(curl -s https://codecov.io/bash)
+
+notifications:
+  webhooks:
+    urls:
+      - https://webhooks.gitter.im/e/6ded9a49eadd62bc59da
