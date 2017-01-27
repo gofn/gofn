@@ -5,6 +5,9 @@ import (
 	"github.com/nuveo/gofn/provision"
 )
 
+// Input receives a string that will be written to the stdin of the container
+var Input string
+
 // Run runs the designed image
 func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
 	client := provision.FnClient("")
@@ -33,6 +36,7 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		return
 	}
 
+	provision.Input = Input
 	stdout = provision.FnRun(client, container.ID).String()
 
 	err = provision.FnRemove(client, container.ID)
