@@ -139,10 +139,10 @@ func FnKillContainer(client *docker.Client, containerID string) (err error) {
 }
 
 // FnRun runs the container
-func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer) {
-	err := client.StartContainer(containerID, nil)
+func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, err error) {
+	err = client.StartContainer(containerID, nil)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	_, err = client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
@@ -153,12 +153,12 @@ func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer) {
 		InputStream: strings.NewReader(Input),
 	})
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	_, err = client.WaitContainer(containerID)
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	stdout := new(bytes.Buffer)
@@ -169,7 +169,7 @@ func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer) {
 		OutputStream: stdout,
 	})
 	if err != nil {
-		panic(err)
+		return
 	}
 
 	Stdout = stdout

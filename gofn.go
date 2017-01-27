@@ -1,6 +1,8 @@
 package gofn
 
 import (
+	"bytes"
+
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/nuveo/gofn/provision"
 )
@@ -36,8 +38,14 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		return
 	}
 
+	var buff *bytes.Buffer
+
 	provision.Input = Input
-	stdout = provision.FnRun(client, container.ID).String()
+	buff, err = provision.FnRun(client, container.ID)
+	if err != nil {
+		return
+	}
+	stdout = buff.String()
 
 	err = provision.FnRemove(client, container.ID)
 	if err != nil {
