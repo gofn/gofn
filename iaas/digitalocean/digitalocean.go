@@ -24,6 +24,12 @@ import (
 	"golang.org/x/oauth2"
 )
 
+const (
+	defaultRegion    = "nyc1"
+	defaultSize      = "512mb"
+	defaultImageSlug = "debian-8-x64"
+)
+
 var (
 	keysDir        = "./.gofn/keys"
 	privateKeyName = "id_rsa"
@@ -33,7 +39,34 @@ var (
 
 // Digitalocean difinition
 type Digitalocean struct {
-	client *godo.Client
+	client    *godo.Client
+	Region    string
+	Size      string
+	ImageSlug string
+}
+
+// GetRegion returns region or default if empty
+func (do Digitalocean) GetRegion() string {
+	if do.Region == "" {
+		return defaultRegion
+	}
+	return do.Region
+}
+
+// GetSize returns size or default if empty
+func (do Digitalocean) GetSize() string {
+	if do.Size == "" {
+		return defaultSize
+	}
+	return do.Size
+}
+
+// GetImageSlug returns image slug  or default if empty
+func (do Digitalocean) GetImageSlug() string {
+	if do.ImageSlug == "" {
+		return defaultImageSlug
+	}
+	return do.ImageSlug
 }
 
 // Auth in Digitalocean API
@@ -77,7 +110,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		}
 	}
 	image := godo.DropletCreateImage{
-		Slug: "debian-8-x64",
+		Slug: do.GetImageSlug(),
 	}
 	if snapshot.Name != "" {
 		id, _ := strconv.Atoi(snapshot.ID)
@@ -92,8 +125,8 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	}
 	createRequest := &godo.DropletCreateRequest{
 		Name:   fmt.Sprintf("gofn-%s", uuid.NewV4().String()),
-		Region: "nyc1",
-		Size:   "512mb",
+		Region: do.GetRegion(),
+		Size:   do.GetSize(),
 		Image:  image,
 		SSHKeys: []godo.DropletCreateSSHKey{
 			{
@@ -239,7 +272,7 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	ac := make(chan *godo.Action, 1)
 	go func() {
 		for {
-			//rodando shutdown...
+			//running shutdown...
 			select {
 			case <-quit:
 				return
@@ -285,7 +318,7 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 	ac := make(chan *godo.Action, 1)
 	go func() {
 		for {
-			//"rodando snapshot..."
+			//"running snapshot..."
 			select {
 			case <-quit:
 				return
