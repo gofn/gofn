@@ -14,6 +14,9 @@ systemctl restart docker
 	OptionalDeps = `curl https://raw.githubusercontent.com/nuveo/boxos/master/initial.sh | sh
 sed -i  's/fd:\/\//fd:\/\/ $DOCKER_OPTS/g' /lib/systemd/system/docker.service
 `
+	SmallRetry  = 120
+	MediumRetry = 480
+	BigRetry    = 960
 )
 
 // Iaas represents a infresture service

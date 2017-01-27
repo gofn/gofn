@@ -358,6 +358,27 @@ func publicKeyFile(file string) ssh.AuthMethod {
 	return ssh.PublicKeys(key)
 }
 
+func probeConnection(ip string, maxRetries int) error {
+	counter := 0
+	var (
+		conn net.Conn
+		err  error
+	)
+	for counter < maxRetries {
+		conn, err = net.DialTimeout("tcp", ip+sshPort, time.Duration(500)*time.Millisecond)
+		if err == nil {
+			return nil
+		}
+		counter++
+		time.Sleep(time.Duration(250) * time.Millisecond)
+	}
+
+	if conn != nil {
+		conn.Close()
+	}
+	return err
+}
+
 // ExecCommand on droplet
 func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output []byte, err error) {
 	pkPath := os.Getenv("GOFN_SSH_PRIVATEKEY_PATH")
@@ -369,13 +390,13 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 		Auth: []ssh.AuthMethod{
 			publicKeyFile(pkPath),
 		},
-		Timeout: time.Duration(5) * time.Minute,
+		Timeout: time.Duration(10) * time.Second,
 	}
-	conn, err := net.Dial("tcp", machine.IP+sshPort)
-	for err != nil {
-		conn, err = net.Dial("tcp", machine.IP+sshPort)
+
+	err = probeConnection(machine.IP, iaas.MediumRetry)
+	if err != nil {
+		return
 	}
-	defer conn.Close()
 	connection, err := ssh.Dial("tcp", machine.IP+sshPort, sshConfig)
 	if err != nil {
 		return
