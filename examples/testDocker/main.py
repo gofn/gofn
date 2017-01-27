@@ -5,7 +5,7 @@ from random import randint
 import time
 import sys
 
-data = sys.stdin.readlines() # read stdin
+data = sys.stdin.readlines()  # read stdin
 
 time.sleep(5)  # Stop for a while to simulate some processing
 
