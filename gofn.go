@@ -15,6 +15,9 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		var machine *iaas.Machine
 		machine, err = buildOpts.Iaas.CreateMachine()
 		if err != nil {
+			if machine != nil {
+				buildOpts.Iaas.DeleteMachine(machine)
+			}
 			return
 		}
 		defer buildOpts.Iaas.DeleteMachine(machine)
