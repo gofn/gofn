@@ -30,34 +30,55 @@ import (
 	"fmt"
 	"log"
 
+	"sync"
+
 	"github.com/nuveo/gofn"
+	"github.com/nuveo/gofn/iaas/digitalocean"
 	"github.com/nuveo/gofn/provision"
 )
 
-func main() {
+const parallels = 3
 
+func main() {
+	wait := &sync.WaitGroup{}
 	contextDir := flag.String("contextDir", "./", "a string")
 	dockerfile := flag.String("dockerfile", "Dockerfile", "a string")
 	imageName := flag.String("imageName", "", "a string")
 	remoteBuildURI := flag.String("remoteBuildURI", "", "a string")
 	volumeSource := flag.String("volumeSource", "", "a string")
 	volumeDestination := flag.String("volumeDestination", "", "a string")
+	remoteBuild := flag.Bool("remoteBuild", false, "true or false")
 	flag.Parse()
-
-	stdout, err := gofn.Run(&provision.BuildOptions{
-		ContextDir: *contextDir,
-		Dockerfile: *dockerfile,
-		ImageName:  *imageName,
-		RemoteURI:  *remoteBuildURI,
-	}, &provision.VolumeOptions{
-		Source:	  *volumeSource,
-		Destination: *volumeDestination,
-	})
-	if err != nil {
-		log.Println(err)
+	wait.Add(parallels)
+	for i := 0; i < parallels; i++ {
+		run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait, *remoteBuild)
 	}
+	wait.Wait()
+}
 
-	fmt.Println(stdout)
+func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volumeDestination string, wait *sync.WaitGroup, remote bool) {
+	buildOpts := &provision.BuildOptions{
+		ContextDir: contextDir,
+		Dockerfile: dockerfile,
+		ImageName:  imageName,
+		RemoteURI:  remoteBuildURI,
+	}
+	if remote {
+		buildOpts.Iaas = &digitalocean.Digitalocean{}
+	}
+	go func() {
+		defer wait.Done()
+		stdout, err := gofn.Run(buildOpts,
+			&provision.VolumeOptions{
+				Source:      volumeSource,
+				Destination: volumeDestination,
+			})
+		if err != nil {
+			log.Println(err)
+		}
+
+		fmt.Println(stdout)
+	}()
 }
 
 ```
@@ -71,6 +92,9 @@ func main() {
 	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -volumeSource=/tmp -volumeDestination=/tmp
 	# or using remote Dockerfile
 	go run main.go -remoteBuildURI=https://github.com/gofn/dockerfile-python-example.git -imageName="pythonexample"
+    # or run in digital ocean
+    export DIGITALOCEAN_API_KEY="paste your key here"
+    go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -remoteBuild=true
 ```
 
 You can also compile with _go build_ or build and install with _go install_ command then run it as a native executable.
@@ -89,6 +113,9 @@ You can also compile with _go build_ or build and install with _go install_ comm
 
 - remoteBuildURI is remote URI containing the Dockerfile to build.By default is empty.
 More details on [docker api docs](https://docs.docker.com/engine/reference/commandline/build/#/git-repositories)
+
+- remoteBuild is a boolean that indicates if have to run localally or in a machine in digital ocean
+Don't forget to export your api key.
 
 - -h Shows the list of parameters
 
