@@ -14,10 +14,10 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 	if buildOpts.Iaas != nil {
 		var machine *iaas.Machine
 		machine, err = buildOpts.Iaas.CreateMachine()
-		defer buildOpts.Iaas.DeleteMachine(machine)
 		if err != nil {
 			return
 		}
+		defer buildOpts.Iaas.DeleteMachine(machine)
 		client = provision.FnClient(machine.IP + dockerPort)
 	}
 
