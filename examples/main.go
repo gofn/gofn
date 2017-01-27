@@ -12,6 +12,8 @@ import (
 	"github.com/nuveo/gofn/provision"
 )
 
+const parallels = 3
+
 func main() {
 	wait := &sync.WaitGroup{}
 	contextDir := flag.String("contextDir", "./", "a string")
@@ -20,37 +22,36 @@ func main() {
 	remoteBuildURI := flag.String("remoteBuildURI", "", "a string")
 	volumeSource := flag.String("volumeSource", "", "a string")
 	volumeDestination := flag.String("volumeDestination", "", "a string")
+	remoteBuild := flag.Bool("remoteBuild", false, "true or false")
 	flag.Parse()
-	wait.Add(1)
-	run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait)
-	wait.Add(1)
-	run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait)
-	wait.Add(1)
-	run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait)
-	wait.Add(1)
-	run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait)
-	wait.Add(1)
-	run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait)
+	wait.Add(parallels)
+	for i := 0; i < parallels; i++ {
+		run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait, *remoteBuild)
+	}
 	wait.Wait()
-
 }
-func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volumeDestination string, wait *sync.WaitGroup) {
+
+func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volumeDestination string, wait *sync.WaitGroup, remote bool) {
+	buildOpts := &provision.BuildOptions{
+		ContextDir: contextDir,
+		Dockerfile: dockerfile,
+		ImageName:  imageName,
+		RemoteURI:  remoteBuildURI,
+	}
+	if remote {
+		buildOpts.Iaas = &digitalocean.Digitalocean{}
+	}
 	go func() {
-		stdout, err := gofn.Run(&provision.BuildOptions{
-			ContextDir: contextDir,
-			Dockerfile: dockerfile,
-			ImageName:  imageName,
-			RemoteURI:  remoteBuildURI,
-			Iaas:       &digitalocean.Digitalocean{},
-		}, &provision.VolumeOptions{
-			Source:      volumeSource,
-			Destination: volumeDestination,
-		})
+		defer wait.Done()
+		stdout, err := gofn.Run(buildOpts,
+			&provision.VolumeOptions{
+				Source:      volumeSource,
+				Destination: volumeDestination,
+			})
 		if err != nil {
 			log.Println(err)
 		}
 
 		fmt.Println(stdout)
-		wait.Done()
 	}()
 }
