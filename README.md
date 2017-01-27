@@ -92,6 +92,8 @@ You can also compile with _go build_ or build and install with _go install_ comm
 - remoteBuildURI is remote URI containing the Dockerfile to build.By default is empty.
 More details on [docker api docs](https://docs.docker.com/engine/reference/commandline/build/#/git-repositories)
 
+- -input is a string that will be written to the stdin of the container
+
 - -h Shows the list of parameters
 
 gofn generates the images with "gofn/" as a prefix.
