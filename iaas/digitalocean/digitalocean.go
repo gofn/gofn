@@ -12,6 +12,7 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
+	"strings"
 	"time"
 
 	"crypto/rand"
@@ -195,19 +196,20 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	if err != nil {
 		return
 	}
+	strContent := strings.TrimSpace(string(content))
 	sshKeys, _, err := do.client.Keys.List(nil)
 	if err != nil {
 		return
 	}
 	for _, key := range sshKeys {
 		sshKey = &key
-		if sshKey.PublicKey == string(content) {
+		if sshKey.PublicKey == strContent {
 			return
 		}
 	}
 	sshKeyRequestCreate := &godo.KeyCreateRequest{
 		Name:      "GOFN",
-		PublicKey: string(content),
+		PublicKey: strContent,
 	}
 	sshKey, _, err = do.client.Keys.Create(sshKeyRequestCreate)
 	if err != nil {
