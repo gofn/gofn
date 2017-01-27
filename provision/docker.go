@@ -4,7 +4,6 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
-	"log"
 	"strings"
 	"time"
 
@@ -17,6 +16,9 @@ var (
 
 	// ErrContainerNotFound is raised when image is not found
 	ErrContainerNotFound = errors.New("provision: container not found")
+
+	// Input receives a string that will be written to the stdin of the container in function FnRun
+	Input string
 )
 
 // VolumeOptions are options to mount a host directory as data volume
@@ -137,19 +139,39 @@ func FnKillContainer(client *docker.Client, containerID string) (err error) {
 }
 
 // FnRun runs the container
-func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer) {
-	err := client.StartContainer(containerID, nil)
+func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, err error) {
+	err = client.StartContainer(containerID, nil)
 	if err != nil {
-		log.Println(err)
+		return
 	}
-	client.WaitContainerWithContext(containerID, nil)
+
+	_, err = client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
+		Container:   containerID,
+		RawTerminal: true,
+		Stream:      true,
+		Stdin:       true,
+		InputStream: strings.NewReader(Input),
+	})
+	if err != nil {
+		return
+	}
+
+	_, err = client.WaitContainer(containerID)
+	if err != nil {
+		return
+	}
+
 	stdout := new(bytes.Buffer)
 
-	client.Logs(docker.LogsOptions{
+	err = client.Logs(docker.LogsOptions{
 		Container:    containerID,
 		Stdout:       true,
 		OutputStream: stdout,
 	})
+	if err != nil {
+		return
+	}
+
 	Stdout = stdout
 	return
 }

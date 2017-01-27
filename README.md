@@ -71,6 +71,8 @@ func main() {
 	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -volumeSource=/tmp -volumeDestination=/tmp
 	# or using remote Dockerfile
 	go run main.go -remoteBuildURI=https://github.com/gofn/dockerfile-python-example.git -imageName="pythonexample"
+	# you can also send a string that will be written to the stdin of the container
+	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -input "input string"
 ```
 
 You can also compile with _go build_ or build and install with _go install_ command then run it as a native executable.
@@ -89,6 +91,8 @@ You can also compile with _go build_ or build and install with _go install_ comm
 
 - remoteBuildURI is remote URI containing the Dockerfile to build.By default is empty.
 More details on [docker api docs](https://docs.docker.com/engine/reference/commandline/build/#/git-repositories)
+
+- -input is a string that will be written to the stdin of the container
 
 - -h Shows the list of parameters
 
