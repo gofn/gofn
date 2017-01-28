@@ -1,26 +1,30 @@
 package provision
 
-import (
-	"testing"
-
-	docker "github.com/fsouza/go-dockerclient"
-)
+import "testing"
 
 func TestFnClient(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test in short mode")
 	}
 
-	var client *docker.Client
 	// connect from local socket
-	client = FnClient("unix:///var/run/docker.sock")
-	if err := client.Ping(); err != nil {
+	client, err := FnClient("unix:///var/run/docker.sock")
+	if err != nil {
+		t.Errorf("FnClient with URI: expected nil but returned %q", err)
+	}
+
+	err = client.Ping()
+	if err != nil {
 		t.Errorf("docker.sock: expected nil but found %q", err)
 	}
 
 	// Empty string also connect local socket
-	client = FnClient("")
-	if err := client.Ping(); err != nil {
+	client, err = FnClient("")
+	if err != nil {
+		t.Errorf("FnClient: expected nil but returned %q", err)
+	}
+
+	if err = client.Ping(); err != nil {
 		t.Errorf("empty string: expected nil but found %q", err)
 	}
 }
