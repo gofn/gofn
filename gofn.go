@@ -1,12 +1,17 @@
 package gofn
 
 import (
+	"bytes"
+
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/nuveo/gofn/iaas"
 	"github.com/nuveo/gofn/provision"
 )
 
 const dockerPort = ":2375"
+
+// Input receives a string that will be written to the stdin of the container
+var Input string
 
 // Run runs the designed image
 func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
@@ -48,7 +53,14 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		return
 	}
 
-	stdout = provision.FnRun(client, container.ID).String()
+	var buff *bytes.Buffer
+
+	provision.Input = Input
+	buff, err = provision.FnRun(client, container.ID)
+	if err != nil {
+		return
+	}
+	stdout = buff.String()
 
 	err = provision.FnRemove(client, container.ID)
 	if err != nil {

@@ -92,6 +92,8 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -volumeSource=/tmp -volumeDestination=/tmp
 	# or using remote Dockerfile
 	go run main.go -remoteBuildURI=https://github.com/gofn/dockerfile-python-example.git -imageName="pythonexample"
+	# you can also send a string that will be written to the stdin of the container
+	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -input "input string"
     # or run in digital ocean
     export DIGITALOCEAN_API_KEY="paste your key here"
     go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -remoteBuild=true
@@ -107,15 +109,17 @@ You can also compile with _go build_ or build and install with _go install_ comm
 
 - -dockerFile is the name of the file containing the container settings, by default Dockerfile
 
-- volumeSource is the directory that will be mounted as a data volume. By default is empty string indicating his not used.
+- -volumeSource is the directory that will be mounted as a data volume. By default is empty string indicating his not used.
 
-- volumeDestination is the path mounted inside the container. By default is empty string indicating his  not used but if only omitted, volumeSource is used.
+- -volumeDestination is the path mounted inside the container. By default is empty string indicating his  not used but if only omitted, volumeSource is used.
 
-- remoteBuildURI is remote URI containing the Dockerfile to build.By default is empty.
+- -remoteBuildURI is remote URI containing the Dockerfile to build.By default is empty.
 More details on [docker api docs](https://docs.docker.com/engine/reference/commandline/build/#/git-repositories)
 
 - remoteBuild is a boolean that indicates if have to run localally or in a machine in digital ocean
 Don't forget to export your api key.
+
+- -input is a string that will be written to the stdin of the container
 
 - -h Shows the list of parameters
 
