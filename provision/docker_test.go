@@ -9,12 +9,10 @@ import (
 )
 
 func TestFnClientWrongClient(t *testing.T) {
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("The code did not panic")
-		}
-	}()
-	FnClient("http://localhost:a")
+	_, err := FnClient("http://localhost:a")
+	if err == nil {
+		t.Fatal("expected error but no errors found")
+	}
 }
 
 func createFakeDockerAPI(t *testing.T) *fake.DockerServer {
@@ -159,7 +157,10 @@ func TestFnBuildImageSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _ := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "", nil})
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "", nil})
+	if err != nil {
+		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
+	}
 
 	imageName := "gofn/test"
 	if name != imageName {
@@ -173,8 +174,11 @@ func TestFnBuildImageRemoteSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _ := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git",
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git",
 		nil})
+	if err != nil {
+		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
+	}
 
 	imageName := "gofn/test"
 	if name != imageName {
@@ -188,12 +192,10 @@ func TestFnBuildImageDockerfileNotFound(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	defer func() {
-		if r := recover(); r == nil {
-			t.Errorf("the code did not panic")
-		}
-	}()
-	FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", "test", "", nil})
+	_, _, err := FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", "test", "", nil})
+	if err == nil {
+		t.Errorf("FnImageBuild expected error but returned nil")
+	}
 }
 
 func TestFnFindImageSuccessfully(t *testing.T) {

@@ -15,18 +15,26 @@ var Input string
 
 // Run runs the designed image
 func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
-	client := provision.FnClient("")
+	var client *docker.Client
+	client, err = provision.FnClient("")
+	if err != nil {
+		return
+	}
+
 	if buildOpts.Iaas != nil {
 		var machine *iaas.Machine
 		machine, err = buildOpts.Iaas.CreateMachine()
 		if err != nil {
 			if machine != nil {
-				buildOpts.Iaas.DeleteMachine(machine)
+				err = buildOpts.Iaas.DeleteMachine(machine)
 			}
 			return
 		}
 		defer buildOpts.Iaas.DeleteMachine(machine)
-		client = provision.FnClient(machine.IP + dockerPort)
+		client, err = provision.FnClient(machine.IP + dockerPort)
+		if err != nil {
+			return
+		}
 	}
 
 	volume := ""
@@ -43,7 +51,10 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 	var container *docker.Container
 
 	if img.ID == "" {
-		image, _ = provision.FnImageBuild(client, buildOpts)
+		image, _, err = provision.FnImageBuild(client, buildOpts)
+		if err != nil {
+			return
+		}
 	} else {
 		image = "gofn/" + buildOpts.ImageName
 	}
