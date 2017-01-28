@@ -4,7 +4,7 @@ LINTER_ARGS = \
 	--vendor --disable=gas\
 	--deadline=15m --tests
 
-TEST_FLAGS = -v $(TEST_EXTRAFLAGS)
+TEST_FLAGS = -v -race $(TEST_EXTRAFLAGS)
 
 metalint:
 	go get -u github.com/alecthomas/gometalinter; \

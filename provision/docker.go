@@ -5,9 +5,10 @@ import (
 	"errors"
 	"fmt"
 	"strings"
-	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
+	"github.com/nuveo/gofn/iaas"
+	uuid "github.com/satori/go.uuid"
 )
 
 var (
@@ -23,12 +24,17 @@ var (
 
 // VolumeOptions are options to mount a host directory as data volume
 type VolumeOptions struct {
-	Source, Destination string
+	Source      string
+	Destination string
 }
 
 // BuildOptions are options used in the image build
 type BuildOptions struct {
-	ContextDir, Dockerfile, ImageName, RemoteURI string
+	ContextDir string
+	Dockerfile string
+	ImageName  string
+	RemoteURI  string
+	Iaas       iaas.Iaas
 }
 
 // FnClient instantiate a docker client
@@ -52,13 +58,12 @@ func FnRemove(client *docker.Client, containerID string) (err error) {
 
 // FnContainer create container
 func FnContainer(client *docker.Client, image, volume string) (container *docker.Container, err error) {
-	t := time.Now()
 	binds := []string{}
 	if volume != "" {
 		binds = append(binds, volume)
 	}
 	container, err = client.CreateContainer(docker.CreateContainerOptions{
-		Name:       fmt.Sprintf("gofn-%s", t.Format("20060102150405")),
+		Name:       fmt.Sprintf("gofn-%s", uuid.NewV4().String()),
 		HostConfig: &docker.HostConfig{Binds: binds},
 		Config: &docker.Config{
 			Image:     image,

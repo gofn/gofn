@@ -11,10 +11,6 @@ os:
 go:
   - 1.7
 
-branches:
-  only:
-    - master
-
 before_install:
   - go get -u github.com/kardianos/govendor
   - govendor sync

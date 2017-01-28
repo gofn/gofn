@@ -5,35 +5,55 @@ import (
 	"fmt"
 	"log"
 
+	"sync"
+
 	"github.com/nuveo/gofn"
+	"github.com/nuveo/gofn/iaas/digitalocean"
 	"github.com/nuveo/gofn/provision"
 )
 
-func main() {
+const parallels = 3
 
+func main() {
+	wait := &sync.WaitGroup{}
 	contextDir := flag.String("contextDir", "./", "a string")
 	dockerfile := flag.String("dockerfile", "Dockerfile", "a string")
 	imageName := flag.String("imageName", "", "a string")
 	remoteBuildURI := flag.String("remoteBuildURI", "", "a string")
 	volumeSource := flag.String("volumeSource", "", "a string")
 	volumeDestination := flag.String("volumeDestination", "", "a string")
+	remoteBuild := flag.Bool("remoteBuild", false, "true or false")
 	input := flag.String("input", "", "a string")
 	flag.Parse()
-
-	gofn.Input = *input
-
-	stdout, err := gofn.Run(&provision.BuildOptions{
-		ContextDir: *contextDir,
-		Dockerfile: *dockerfile,
-		ImageName:  *imageName,
-		RemoteURI:  *remoteBuildURI,
-	}, &provision.VolumeOptions{
-		Source:      *volumeSource,
-		Destination: *volumeDestination,
-	})
-	if err != nil {
-		log.Println(err)
+	wait.Add(parallels)
+	for i := 0; i < parallels; i++ {
+		run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait, *remoteBuild, *input)
 	}
+	wait.Wait()
+}
 
-	fmt.Println(stdout)
+func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volumeDestination string, wait *sync.WaitGroup, remote bool, input string) {
+	gofn.Input = input
+	buildOpts := &provision.BuildOptions{
+		ContextDir: contextDir,
+		Dockerfile: dockerfile,
+		ImageName:  imageName,
+		RemoteURI:  remoteBuildURI,
+	}
+	if remote {
+		buildOpts.Iaas = &digitalocean.Digitalocean{}
+	}
+	go func() {
+		defer wait.Done()
+		stdout, err := gofn.Run(buildOpts,
+			&provision.VolumeOptions{
+				Source:      volumeSource,
+				Destination: volumeDestination,
+			})
+		if err != nil {
+			log.Println(err)
+		}
+
+		fmt.Println(stdout)
+	}()
 }

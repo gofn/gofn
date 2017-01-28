@@ -4,8 +4,11 @@ import (
 	"bytes"
 
 	docker "github.com/fsouza/go-dockerclient"
+	"github.com/nuveo/gofn/iaas"
 	"github.com/nuveo/gofn/provision"
 )
+
+const dockerPort = ":2375"
 
 // Input receives a string that will be written to the stdin of the container
 var Input string
@@ -13,6 +16,18 @@ var Input string
 // Run runs the designed image
 func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
 	client := provision.FnClient("")
+	if buildOpts.Iaas != nil {
+		var machine *iaas.Machine
+		machine, err = buildOpts.Iaas.CreateMachine()
+		if err != nil {
+			if machine != nil {
+				buildOpts.Iaas.DeleteMachine(machine)
+			}
+			return
+		}
+		defer buildOpts.Iaas.DeleteMachine(machine)
+		client = provision.FnClient(machine.IP + dockerPort)
+	}
 
 	volume := ""
 	if volumeOpts != nil {
