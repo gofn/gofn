@@ -38,15 +38,12 @@ type BuildOptions struct {
 }
 
 // FnClient instantiate a docker client
-func FnClient(endPoint string) (client *docker.Client) {
+func FnClient(endPoint string) (client *docker.Client, err error) {
 	if endPoint == "" {
 		endPoint = "unix:///var/run/docker.sock"
 	}
 
-	client, err := docker.NewClient(endPoint)
-	if err != nil {
-		panic(err)
-	}
+	client, err = docker.NewClient(endPoint)
 	return
 }
 
@@ -75,13 +72,13 @@ func FnContainer(client *docker.Client, image, volume string) (container *docker
 }
 
 // FnImageBuild builds an image
-func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdout *bytes.Buffer) {
+func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdout *bytes.Buffer, err error) {
 	if opts.Dockerfile == "" {
 		opts.Dockerfile = "Dockerfile"
 	}
 	stdout := new(bytes.Buffer)
 	Name = "gofn/" + opts.ImageName
-	err := client.BuildImage(docker.BuildImageOptions{
+	err = client.BuildImage(docker.BuildImageOptions{
 		Name:           Name,
 		Dockerfile:     opts.Dockerfile,
 		SuppressOutput: true,
@@ -90,7 +87,7 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		Remote:         opts.RemoteURI,
 	})
 	if err != nil {
-		panic(err)
+		return
 	}
 	Stdout = stdout
 	return
