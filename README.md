@@ -12,7 +12,7 @@ Function process via container provider
 
 - Software makes a task
 - After processing it dies
-- Must put on stdout (print) a string formatted as JSON
+- Must put on stdout (print)
 
 ## Install
 
