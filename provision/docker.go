@@ -141,7 +141,7 @@ func FnKillContainer(client *docker.Client, containerID string) (err error) {
 }
 
 // FnRun runs the container
-func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, err error) {
+func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, Stderr *bytes.Buffer, err error) {
 	err = client.StartContainer(containerID, nil)
 	if err != nil {
 		return
@@ -164,10 +164,13 @@ func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, err
 	}
 
 	stdout := new(bytes.Buffer)
+	stderr := new(bytes.Buffer)
 
 	err = client.Logs(docker.LogsOptions{
 		Container:    containerID,
 		Stdout:       true,
+		Stderr:       true,
+		ErrorStream:  stderr,
 		OutputStream: stdout,
 	})
 	if err != nil {
@@ -175,6 +178,7 @@ func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, err
 	}
 
 	Stdout = stdout
+	Stderr = stderr
 	return
 }
 
