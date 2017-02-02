@@ -45,7 +45,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	}
 	go func() {
 		defer wait.Done()
-		stdout, err := gofn.Run(buildOpts,
+		stdout, stderr, err := gofn.Run(buildOpts,
 			&provision.VolumeOptions{
 				Source:      volumeSource,
 				Destination: volumeDestination,
@@ -53,7 +53,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 		if err != nil {
 			log.Println(err)
 		}
-
-		fmt.Println(stdout)
+		fmt.Println("Stderr: ", stderr)
+		fmt.Println("Stdout: ", stdout)
 	}()
 }

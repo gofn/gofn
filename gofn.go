@@ -14,7 +14,7 @@ const dockerPort = ":2375"
 var Input string
 
 // Run runs the designed image
-func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, err error) {
+func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (stdout string, stderr string, err error) {
 	var client *docker.Client
 	client, err = provision.FnClient("")
 	if err != nil {
@@ -64,14 +64,16 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		return
 	}
 
-	var buff *bytes.Buffer
+	var buffout *bytes.Buffer
+	var bufferr *bytes.Buffer
 
 	provision.Input = Input
-	buff, err = provision.FnRun(client, container.ID)
+	buffout, bufferr, err = provision.FnRun(client, container.ID)
 	if err != nil {
 		return
 	}
-	stdout = buff.String()
+	stdout = buffout.String()
+	stderr = bufferr.String()
 
 	err = provision.FnRemove(client, container.ID)
 	if err != nil {

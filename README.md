@@ -48,15 +48,17 @@ func main() {
 	volumeSource := flag.String("volumeSource", "", "a string")
 	volumeDestination := flag.String("volumeDestination", "", "a string")
 	remoteBuild := flag.Bool("remoteBuild", false, "true or false")
+	input := flag.String("input", "", "a string")
 	flag.Parse()
 	wait.Add(parallels)
 	for i := 0; i < parallels; i++ {
-		run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait, *remoteBuild)
+		run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait, *remoteBuild, *input)
 	}
 	wait.Wait()
 }
 
-func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volumeDestination string, wait *sync.WaitGroup, remote bool) {
+func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volumeDestination string, wait *sync.WaitGroup, remote bool, input string) {
+	gofn.Input = input
 	buildOpts := &provision.BuildOptions{
 		ContextDir: contextDir,
 		Dockerfile: dockerfile,
@@ -68,7 +70,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	}
 	go func() {
 		defer wait.Done()
-		stdout, err := gofn.Run(buildOpts,
+		stdout, stderr, err := gofn.Run(buildOpts,
 			&provision.VolumeOptions{
 				Source:      volumeSource,
 				Destination: volumeDestination,
@@ -76,11 +78,10 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 		if err != nil {
 			log.Println(err)
 		}
-
-		fmt.Println(stdout)
+		fmt.Println("Stderr: ", stderr)
+		fmt.Println("Stdout: ", stdout)
 	}()
 }
-
 ```
 
 ### Run Example
