@@ -17,4 +17,5 @@ ret = json.dumps(obj, ensure_ascii=True)
 with open('/tmp/test', 'a') as file:
     file.write('hello world!\n')
 
+print("write into stderr", file=sys.stderr)
 print(ret)
