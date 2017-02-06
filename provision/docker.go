@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"errors"
 	"fmt"
+	"io"
 	"strings"
 
 	docker "github.com/fsouza/go-dockerclient"
@@ -140,6 +141,22 @@ func FnKillContainer(client *docker.Client, containerID string) (err error) {
 	return
 }
 
+//FnAttach attach into a running container
+func FnAttach(client *docker.Client, containerID string, stdout io.Writer, stderr io.Writer) (w docker.CloseWaiter, err error) {
+	return client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
+		Container:    containerID,
+		RawTerminal:  true,
+		Stream:       true,
+		Stdin:        true,
+		Stderr:       true,
+		Stdout:       true,
+		Logs:         true,
+		InputStream:  strings.NewReader(Input),
+		ErrorStream:  stderr,
+		OutputStream: stdout,
+	})
+}
+
 // FnRun runs the container
 func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, Stderr *bytes.Buffer, err error) {
 	err = client.StartContainer(containerID, nil)
@@ -147,39 +164,52 @@ func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, Std
 		return
 	}
 
-	_, err = client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
-		Container:   containerID,
-		RawTerminal: true,
-		Stream:      true,
-		Stdin:       true,
-		InputStream: strings.NewReader(Input),
-	})
+	// attach to write input
+	_, err = FnAttach(client, containerID, nil, nil)
 	if err != nil {
 		return
 	}
 
-	_, err = client.WaitContainer(containerID)
-	if err != nil {
+	done, errors := FnWaitContainer(client, containerID)
+	select {
+	case err = <-errors:
 		return
+	case <-done:
 	}
 
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 
-	err = client.Logs(docker.LogsOptions{
+	FnLogs(client, containerID, stdout, stderr)
+
+	Stdout = stdout
+	Stderr = stderr
+	return
+}
+
+// FnLogs logs all container activity
+func FnLogs(client *docker.Client, containerID string, stdout io.Writer, stderr io.Writer) error {
+	return client.Logs(docker.LogsOptions{
 		Container:    containerID,
 		Stdout:       true,
 		Stderr:       true,
 		ErrorStream:  stderr,
 		OutputStream: stdout,
 	})
-	if err != nil {
-		return
-	}
+}
 
-	Stdout = stdout
-	Stderr = stderr
-	return
+// FnWaitContainer wait until container finnish your processing
+func FnWaitContainer(client *docker.Client, containerID string) (chan bool, chan error) {
+	done := make(chan bool)
+	errors := make(chan error)
+	go func() {
+		_, err := client.WaitContainer(containerID)
+		if err != nil {
+			errors <- err
+		}
+		done <- true
+	}()
+	return done, errors
 }
 
 // FnConfigVolume set volume options
