@@ -209,9 +209,6 @@ func TestCreateMachine(t *testing.T) {
 	if m.Name != "gofn" {
 		t.Errorf("Expected name = \"gofn\" but found %q", m.Name)
 	}
-	if m.Status != "new" {
-		t.Errorf("Expected status = \"new\" but found %q", m.Status)
-	}
 	if m.SSHKeysID[0] != 512189 {
 		t.Errorf("Expected SSHKeysID = 512189 but found %q", m.SSHKeysID[0])
 	}
@@ -427,9 +424,6 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 	}
 	if m.Name != "gofn" {
 		t.Errorf("Expected name = \"gofn\" but found %q", m.Name)
-	}
-	if m.Status != "new" {
-		t.Errorf("Expected status = \"new\" but found %q", m.Status)
 	}
 	if m.SSHKeysID[0] != 512189 {
 		t.Errorf("Expected SSHKeysID = 512189 but found %q", m.SSHKeysID[0])

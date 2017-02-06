@@ -154,7 +154,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Image:     newDroplet.Image.Slug,
 		Kind:      "digitalocean",
 		Name:      newDroplet.Name,
-		Status:    newDroplet.Status,
 		SSHKeysID: []int{sshKey.ID},
 	}
 	cmd := fmt.Sprintf(iaas.RequiredDeps, machine.IP)
