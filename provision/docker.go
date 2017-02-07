@@ -142,7 +142,7 @@ func FnKillContainer(client *docker.Client, containerID string) (err error) {
 }
 
 //FnAttach attach into a running container
-func FnAttach(client *docker.Client, containerID string, stdout io.Writer, stderr io.Writer) (w docker.CloseWaiter, err error) {
+func FnAttach(client *docker.Client, containerID string, stdin io.Reader, stdout io.Writer, stderr io.Writer) (w docker.CloseWaiter, err error) {
 	return client.AttachToContainerNonBlocking(docker.AttachToContainerOptions{
 		Container:    containerID,
 		RawTerminal:  true,
@@ -151,21 +151,26 @@ func FnAttach(client *docker.Client, containerID string, stdout io.Writer, stder
 		Stderr:       true,
 		Stdout:       true,
 		Logs:         true,
-		InputStream:  strings.NewReader(Input),
+		InputStream:  stdin,
 		ErrorStream:  stderr,
 		OutputStream: stdout,
 	})
 }
 
+// FnStart start the container
+func FnStart(client *docker.Client, containerID string) error {
+	return client.StartContainer(containerID, nil)
+}
+
 // FnRun runs the container
 func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, Stderr *bytes.Buffer, err error) {
-	err = client.StartContainer(containerID, nil)
+	err = FnStart(client, containerID)
 	if err != nil {
 		return
 	}
 
 	// attach to write input
-	_, err = FnAttach(client, containerID, nil, nil)
+	_, err = FnAttach(client, containerID, strings.NewReader(Input), nil, nil)
 	if err != nil {
 		return
 	}
