@@ -192,7 +192,7 @@ func TestFnBuildImageDoNotUsePrefixImageName(t *testing.T) {
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
 	imageName := "testDoNotUsePrefixImageName"
-	name, _, err := FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", true, imageName, "", nil})
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", true, imageName, "", nil})
 	if err != nil {
 		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
 	}
