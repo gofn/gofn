@@ -35,6 +35,7 @@ type BuildOptions struct {
 	Dockerfile string
 	ImageName  string
 	RemoteURI  string
+	StdIN      string
 	Iaas       iaas.Iaas
 }
 
@@ -163,14 +164,14 @@ func FnStart(client *docker.Client, containerID string) error {
 }
 
 // FnRun runs the container
-func FnRun(client *docker.Client, containerID string) (Stdout *bytes.Buffer, Stderr *bytes.Buffer, err error) {
+func FnRun(client *docker.Client, containerID, input string) (Stdout *bytes.Buffer, Stderr *bytes.Buffer, err error) {
 	err = FnStart(client, containerID)
 	if err != nil {
 		return
 	}
 
 	// attach to write input
-	_, err = FnAttach(client, containerID, strings.NewReader(Input), nil, nil)
+	_, err = FnAttach(client, containerID, strings.NewReader(input), nil, nil)
 	if err != nil {
 		return
 	}
