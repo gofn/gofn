@@ -157,7 +157,7 @@ func TestFnBuildImageSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "", nil})
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "", "", nil})
 	if err != nil {
 		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
 	}
@@ -174,8 +174,7 @@ func TestFnBuildImageRemoteSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git",
-		nil})
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git", "", nil})
 	if err != nil {
 		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
 	}
@@ -192,7 +191,7 @@ func TestFnBuildImageDockerfileNotFound(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	_, _, err := FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", "test", "", nil})
+	_, _, err := FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", "test", "", "", nil})
 	if err == nil {
 		t.Errorf("FnImageBuild expected error but returned nil")
 	}
