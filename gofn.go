@@ -29,7 +29,7 @@ func ProvideMachine(service iaas.Iaas) (client *docker.Client, machine *iaas.Mac
 
 // PrepareContainer build an image if necessary and run the container
 func PrepareContainer(client *docker.Client, buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions) (container *docker.Container, err error) {
-	img, err := provision.FnFindImage(client, buildOpts.ImageName)
+	img, err := provision.FnFindImage(client, buildOpts.GetImageName())
 	if err != nil && err != provision.ErrImageNotFound {
 		return
 	}
@@ -41,7 +41,7 @@ func PrepareContainer(client *docker.Client, buildOpts *provision.BuildOptions, 
 			return
 		}
 	} else {
-		image = "gofn/" + buildOpts.ImageName
+		image = buildOpts.GetImageName()
 	}
 
 	volume := ""

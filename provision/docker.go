@@ -31,12 +31,20 @@ type VolumeOptions struct {
 
 // BuildOptions are options used in the image build
 type BuildOptions struct {
-	ContextDir string
-	Dockerfile string
-	ImageName  string
-	RemoteURI  string
-	StdIN      string
-	Iaas       iaas.Iaas
+	ContextDir              string
+	Dockerfile              string
+	DoNotUsePrefixImageName bool
+	ImageName               string
+	RemoteURI               string
+	StdIN                   string
+	Iaas                    iaas.Iaas
+}
+
+func (opts BuildOptions) GetImageName() string {
+	if opts.DoNotUsePrefixImageName {
+		return opts.ImageName
+	}
+	return "gofn/" + opts.ImageName
 }
 
 // FnClient instantiate a docker client
@@ -79,7 +87,7 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		opts.Dockerfile = "Dockerfile"
 	}
 	stdout := new(bytes.Buffer)
-	Name = "gofn/" + opts.ImageName
+	Name = opts.GetImageName()
 	err = client.BuildImage(docker.BuildImageOptions{
 		Name:           Name,
 		Dockerfile:     opts.Dockerfile,
@@ -98,18 +106,14 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 // FnFindImage returns image data by name
 func FnFindImage(client *docker.Client, imageName string) (image docker.APIImages, err error) {
 	var imgs []docker.APIImages
-	name := "gofn/" + imageName
-
-	imgs, err = client.ListImages(docker.ListImagesOptions{Filter: name})
+	imgs, err = client.ListImages(docker.ListImagesOptions{Filter: imageName})
 	if err != nil {
 		return
 	}
-
 	if len(imgs) == 0 {
 		err = ErrImageNotFound
 		return
 	}
-
 	image = imgs[0]
 	return
 }
