@@ -11,9 +11,6 @@ import (
 
 const dockerPort = ":2375"
 
-// Input receives a string that will be written to the stdin of the container
-var Input string
-
 // ProvideMachine provisioning a machine in the cloud
 func ProvideMachine(service iaas.Iaas) (client *docker.Client, machine *iaas.Machine, err error) {
 	machine, err = service.CreateMachine()
@@ -97,8 +94,7 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 	var buffout *bytes.Buffer
 	var bufferr *bytes.Buffer
 
-	provision.Input = Input
-	buffout, bufferr, err = provision.FnRun(client, container.ID)
+	buffout, bufferr, err = provision.FnRun(client, container.ID, buildOpts.StdIN)
 	if err != nil {
 		return
 	}

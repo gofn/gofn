@@ -33,12 +33,12 @@ func main() {
 }
 
 func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volumeDestination string, wait *sync.WaitGroup, remote bool, input string) {
-	gofn.Input = input
 	buildOpts := &provision.BuildOptions{
 		ContextDir: contextDir,
 		Dockerfile: dockerfile,
 		ImageName:  imageName,
 		RemoteURI:  remoteBuildURI,
+		StdIN:      input,
 	}
 	if remote {
 		buildOpts.Iaas = &digitalocean.Digitalocean{}
