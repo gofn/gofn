@@ -90,6 +90,9 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 
 	var container *docker.Container
 	container, err = PrepareContainer(client, buildOpts, volumeOpts)
+	if err != nil {
+		return
+	}
 
 	var buffout *bytes.Buffer
 	var bufferr *bytes.Buffer
