@@ -14,7 +14,7 @@ func TestRun(t *testing.T) {
 	}
 	_, _, err := Run(buildOpts, nil)
 	if err == nil {
-		t.Fatal("Expected error")
+		t.Fatal("Expected error but returned nil, this test must fail because the path to Dockerfile does not exist")
 	}
 
 }
