@@ -25,7 +25,7 @@ func main() {
 		log.Println(err)
 		return
 	}
-	err, finnish, errors := gofn.RunWait(client, container)
+	finnish, errors, err := gofn.RunWait(client, container)
 	if err != nil {
 		log.Println(err)
 		return
