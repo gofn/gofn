@@ -19,8 +19,8 @@ var (
 	// ErrContainerNotFound is raised when image is not found
 	ErrContainerNotFound = errors.New("provision: container not found")
 
-	// ErrExecutionFailed is raised if container exited with status different of zero
-	ErrExecutionFailed = errors.New("provision: container exited with failure")
+	// ErrContainerExecutionFailed is raised if container exited with status different of zero
+	ErrContainerExecutionFailed = errors.New("provision: container exited with failure")
 
 	// Input receives a string that will be written to the stdin of the container in function FnRun
 	Input string
@@ -221,7 +221,7 @@ func FnWaitContainer(client *docker.Client, containerID string) (chan bool, chan
 			errs <- err
 		}
 		if code != 0 {
-			errs <- ErrExecutionFailed
+			errs <- ErrContainerExecutionFailed
 		}
 		done <- true
 	}()
