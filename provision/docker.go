@@ -19,6 +19,9 @@ var (
 	// ErrContainerNotFound is raised when image is not found
 	ErrContainerNotFound = errors.New("provision: container not found")
 
+	// ErrContainerExecutionFailed is raised if container exited with status different of zero
+	ErrContainerExecutionFailed = errors.New("provision: container exited with failure")
+
 	// Input receives a string that will be written to the stdin of the container in function FnRun
 	Input string
 )
@@ -211,15 +214,18 @@ func FnLogs(client *docker.Client, containerID string, stdout io.Writer, stderr 
 // FnWaitContainer wait until container finnish your processing
 func FnWaitContainer(client *docker.Client, containerID string) (chan bool, chan error) {
 	done := make(chan bool)
-	errors := make(chan error)
+	errs := make(chan error)
 	go func() {
-		_, err := client.WaitContainer(containerID)
+		code, err := client.WaitContainer(containerID)
 		if err != nil {
-			errors <- err
+			errs <- err
+		}
+		if code != 0 {
+			errs <- ErrContainerExecutionFailed
 		}
 		done <- true
 	}()
-	return done, errors
+	return done, errs
 }
 
 // FnConfigVolume set volume options
