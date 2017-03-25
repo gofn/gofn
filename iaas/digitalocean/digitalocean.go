@@ -1,7 +1,6 @@
 package digitalocean
 
 import (
-	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -15,6 +14,8 @@ import (
 	"strconv"
 	"strings"
 	"time"
+
+	"golang.org/x/net/context"
 
 	"crypto/rand"
 
