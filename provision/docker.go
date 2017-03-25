@@ -43,6 +43,7 @@ type BuildOptions struct {
 	Iaas                    iaas.Iaas
 }
 
+// GetImageName sets preffix gofn when needed
 func (opts BuildOptions) GetImageName() string {
 	if opts.DoNotUsePrefixImageName {
 		return opts.ImageName
@@ -193,7 +194,10 @@ func FnRun(client *docker.Client, containerID, input string) (Stdout *bytes.Buff
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 
-	FnLogs(client, containerID, stdout, stderr)
+	err = FnLogs(client, containerID, stdout, stderr)
+	if err != nil {
+		return
+	}
 
 	Stdout = stdout
 	Stderr = stderr

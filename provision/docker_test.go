@@ -25,7 +25,7 @@ func createFakeDockerAPI(t *testing.T) *fake.DockerServer {
 }
 
 func createFakeImage(client *docker.Client) string {
-	client.PullImage(docker.PullImageOptions{Repository: "gofn/python"}, docker.AuthConfiguration{})
+	_ = client.PullImage(docker.PullImageOptions{Repository: "gofn/python"}, docker.AuthConfiguration{})
 	return "gofn/python"
 }
 

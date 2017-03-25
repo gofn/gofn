@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"context"
 	"crypto/rsa"
 	"crypto/x509"
 	"encoding/pem"
@@ -31,13 +32,17 @@ const (
 )
 
 var (
-	KeysDir        = "./.gofn/keys"
+	// KeysDir is the directory where keys are stored
+	KeysDir = "./.gofn/keys"
+	// PrivateKeyName is the default name of private key
 	PrivateKeyName = "id_rsa"
-	PublicKeyName  = "id_rsa.pub"
-	SshPort        = ":22"
+	// PublicKeyName is the default name of public key
+	PublicKeyName = "id_rsa.pub"
+	// SSHPort is the default ssh port
+	SSHPort = ":22"
 )
 
-// Digitalocean difinition
+// Digitalocean definition, represents a concrete implementation of an iaas
 type Digitalocean struct {
 	client    *godo.Client
 	Region    string
@@ -81,7 +86,7 @@ func (do *Digitalocean) Auth() (err error) {
 	tokenSource := oauth2.StaticTokenSource(&oauth2.Token{
 		AccessToken: key,
 	})
-	oauthClient := oauth2.NewClient(oauth2.NoContext, tokenSource)
+	oauthClient := oauth2.NewClient(context.Background(), tokenSource)
 	do.client = godo.NewClient(oauthClient)
 	if apiURL != "" {
 		do.client.BaseURL, err = url.Parse(apiURL)
@@ -285,7 +290,8 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 			case <-quit:
 				return
 			default:
-				d, _, err := do.client.DropletActions.Get(id, action.ID)
+				var d *godo.Action
+				d, _, err = do.client.DropletActions.Get(id, action.ID)
 				if err != nil {
 					errs <- err
 					return
@@ -331,7 +337,8 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 			case <-quit:
 				return
 			default:
-				d, _, err := do.client.DropletActions.Get(id, action.ID)
+				var d *godo.Action
+				d, _, err = do.client.DropletActions.Get(id, action.ID)
 				if err != nil {
 					errs <- err
 					return
@@ -373,7 +380,7 @@ func probeConnection(ip string, maxRetries int) error {
 		err  error
 	)
 	for counter < maxRetries {
-		conn, err = net.DialTimeout("tcp", ip+SshPort, time.Duration(500)*time.Millisecond)
+		conn, err = net.DialTimeout("tcp", ip+SSHPort, time.Duration(500)*time.Millisecond)
 		if err == nil {
 			return nil
 		}
@@ -382,7 +389,7 @@ func probeConnection(ip string, maxRetries int) error {
 	}
 
 	if conn != nil {
-		conn.Close()
+		err = conn.Close()
 	}
 	return err
 }
@@ -405,7 +412,7 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 	if err != nil {
 		return
 	}
-	connection, err := ssh.Dial("tcp", machine.IP+SshPort, sshConfig)
+	connection, err := ssh.Dial("tcp", machine.IP+SSHPort, sshConfig)
 	if err != nil {
 		return
 	}

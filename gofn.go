@@ -85,7 +85,9 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 		if err != nil {
 			return
 		}
-		defer buildOpts.Iaas.DeleteMachine(machine)
+		defer func() {
+			err = buildOpts.Iaas.DeleteMachine(machine)
+		}()
 	}
 
 	var container *docker.Container
@@ -109,6 +111,7 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 
 }
 
+// DestroyContainer remove by force a container
 func DestroyContainer(client *docker.Client, container *docker.Container) error {
 	return provision.FnRemove(client, container.ID)
 }

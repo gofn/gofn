@@ -3,6 +3,7 @@ package digitalocean
 import (
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"os"
@@ -20,10 +21,22 @@ var (
 func setup() {
 	mux = http.NewServeMux()
 	server = httptest.NewServer(mux)
-	os.Setenv("DIGITALOCEAN_API_URL", server.URL)
-	os.Setenv("DIGITALOCEAN_API_KEY", "api-key")
-	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "testdata/fake_id_rsa.pub")
-	os.Setenv("GOFN_SSH_PRIVATEKEY_PATH", "testdata/fake_id_rsa")
+	err := os.Setenv("DIGITALOCEAN_API_URL", server.URL)
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.Setenv("DIGITALOCEAN_API_KEY", "api-key")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "testdata/fake_id_rsa.pub")
+	if err != nil {
+		log.Fatal(err)
+	}
+	err = os.Setenv("GOFN_SSH_PRIVATEKEY_PATH", "testdata/fake_id_rsa")
+	if err != nil {
+		log.Fatal(err)
+	}
 }
 
 func teardown() {
@@ -103,8 +116,14 @@ func TestAuth(t *testing.T) {
 		{"apikey", "://localhost", "", false},
 	} {
 		do := &Digitalocean{}
-		os.Setenv("DIGITALOCEAN_API_KEY", test.apiKEY)
-		os.Setenv("DIGITALOCEAN_API_URL", test.apiURL)
+		err := os.Setenv("DIGITALOCEAN_API_KEY", test.apiKEY)
+		if err != nil {
+			t.Fatal(err)
+		}
+		err = os.Setenv("DIGITALOCEAN_API_URL", test.apiURL)
+		if err != nil {
+			t.Fatal(err)
+		}
 		errBool := do.Auth() == nil
 		if errBool != test.errIsNil {
 			t.Errorf("%+v Expected %+v but found %+v", test, test.errIsNil, errBool)
@@ -215,7 +234,10 @@ func TestCreateMachine(t *testing.T) {
 }
 
 func TestCreateMachineWrongAuth(t *testing.T) {
-	os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
+	err := os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
+	if err != nil {
+		t.Fatal(err)
+	}
 	do := &Digitalocean{}
 	m, err := do.CreateMachine()
 	if err == nil || m != nil {
@@ -559,7 +581,10 @@ func TestCreateMachineWithWrongSSHKeyList(t *testing.T) {
 func TestCreateMachineWithoutSSHKey(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "")
+	err := os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "")
+	if err != nil {
+		t.Fatal(err)
+	}
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -614,7 +639,7 @@ func TestCreateMachineWithoutSSHKey(t *testing.T) {
 	})
 	defineListSnapshotsEndpoint()
 	do := &Digitalocean{}
-	_, err := do.CreateMachine()
+	_, err = do.CreateMachine()
 	if err == nil {
 		t.Fatalf("Expected run with errors but not has %q", err)
 	}
@@ -623,7 +648,10 @@ func TestCreateMachineWithoutSSHKey(t *testing.T) {
 func TestCreateMachineWithWrongSSHKeyPath(t *testing.T) {
 	setup()
 	defer teardown()
-	os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "test/bla.pub")
+	err := os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "test/bla.pub")
+	if err != nil {
+		t.Fatal(err)
+	}
 	mux.HandleFunc("/v2/droplets", func(w http.ResponseWriter, r *http.Request) {
 		if r.Method != http.MethodPost {
 			t.Fatalf("Expected method POST but request method is %s", r.Method)
@@ -678,7 +706,7 @@ func TestCreateMachineWithWrongSSHKeyPath(t *testing.T) {
 	})
 	defineListSnapshotsEndpoint()
 	do := &Digitalocean{}
-	_, err := do.CreateMachine()
+	_, err = do.CreateMachine()
 	if err == nil {
 		t.Fatalf("Expected run with errors but not has %q", err)
 	}
@@ -959,10 +987,13 @@ func TestDeleteMachineWithShutdownErrorAndPowerOff(t *testing.T) {
 }
 
 func TestDeleteMachineWrongAuth(t *testing.T) {
-	os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
+	err := os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
+	if err != nil {
+		t.Fatal(err)
+	}
 	do := &Digitalocean{}
 	machine := &iaas.Machine{ID: "503"}
-	err := do.DeleteMachine(machine)
+	err = do.DeleteMachine(machine)
 	if err == nil {
 		t.Errorf("expected errors but run without errors")
 	}
@@ -1015,10 +1046,13 @@ func TestCreateSnapshot(t *testing.T) {
 }
 
 func TestCreateSnapshotWrongAuth(t *testing.T) {
-	os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
+	err := os.Setenv("DIGITALOCEAN_API_URL", "://localhost")
+	if err != nil {
+		t.Fatal(err)
+	}
 	do := &Digitalocean{}
 	machine := &iaas.Machine{ID: "503"}
-	err := do.CreateSnapshot(machine)
+	err = do.CreateSnapshot(machine)
 	if err == nil {
 		t.Errorf("expected errors but run without errors")
 	}
