@@ -107,6 +107,9 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 	stderr = bufferr.String()
 
 	err = DestroyContainer(client, container)
+	if err != nil {
+		return
+	}
 	return
 
 }
