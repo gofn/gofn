@@ -184,17 +184,14 @@ func FnRun(client *docker.Client, containerID, input string) (Stdout *bytes.Buff
 		return
 	}
 
-	done, errors := FnWaitContainer(client, containerID)
-	select {
-	case err = <-errors:
-		return
-	case <-done:
-	}
+	e := FnWaitContainer(client, containerID)
+	err = <-e
 
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 
-	err = FnLogs(client, containerID, stdout, stderr)
+	// omit logs beacuse execution error is more important
+	_ = FnLogs(client, containerID, stdout, stderr)
 	if err != nil {
 		return
 	}
@@ -216,8 +213,7 @@ func FnLogs(client *docker.Client, containerID string, stdout io.Writer, stderr 
 }
 
 // FnWaitContainer wait until container finnish your processing
-func FnWaitContainer(client *docker.Client, containerID string) (chan bool, chan error) {
-	done := make(chan bool)
+func FnWaitContainer(client *docker.Client, containerID string) (chan error) {
 	errs := make(chan error)
 	go func() {
 		code, err := client.WaitContainer(containerID)
@@ -227,9 +223,9 @@ func FnWaitContainer(client *docker.Client, containerID string) (chan bool, chan
 		if code != 0 {
 			errs <- ErrContainerExecutionFailed
 		}
-		done <- true
+		errs <- nil
 	}()
-	return done, errs
+	return errs
 }
 
 // FnConfigVolume set volume options

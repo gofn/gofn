@@ -57,12 +57,12 @@ func PrepareContainer(client *docker.Client, buildOpts *provision.BuildOptions, 
 }
 
 // RunWait runs the conainer returning channels to control your status
-func RunWait(client *docker.Client, container *docker.Container) (running chan bool, errors chan error, err error) {
+func RunWait(client *docker.Client, container *docker.Container) (errors chan error, err error) {
 	err = provision.FnStart(client, container.ID)
 	if err != nil {
 		return
 	}
-	running, errors = provision.FnWaitContainer(client, container.ID)
+	errors = provision.FnWaitContainer(client, container.ID)
 	return
 }
 
