@@ -100,18 +100,11 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions)
 	var bufferr *bytes.Buffer
 
 	buffout, bufferr, err = provision.FnRun(client, container.ID, buildOpts.StdIN)
-	if err != nil {
-		return
-	}
 	stdout = buffout.String()
 	stderr = bufferr.String()
 
-	err = DestroyContainer(client, container)
-	if err != nil {
-		return
-	}
+	DestroyContainer(client, container)
 	return
-
 }
 
 // DestroyContainer remove by force a container
