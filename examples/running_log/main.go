@@ -15,12 +15,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer func() {
-		err = iaas.DeleteMachine(machine)
-		if err != nil {
-			log.Fatal(err)
-		}
-	}()
+	defer iaas.DeleteMachine(machine)
 	container, err := gofn.PrepareContainer(client, &provision.BuildOptions{
 		ContextDir: "testDocker",
 		Dockerfile: "Dockerfile",
@@ -30,7 +25,7 @@ func main() {
 		log.Println(err)
 		return
 	}
-	finnish, errors, err := gofn.RunWait(client, container)
+	errors, err := gofn.RunWait(client, container)
 	if err != nil {
 		log.Println(err)
 		return
@@ -40,9 +35,8 @@ func main() {
 		log.Println(err)
 		return
 	}
-	select {
-	case err := <-errors:
+	err = <-errors
+	if err != nil{
 		log.Println(err)
-	case <-finnish:
 	}
 }
