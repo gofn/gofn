@@ -65,16 +65,19 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 		RemoteURI:  remoteBuildURI,
 		StdIN:      input,
 	}
+	containerOpts := &provision.ContainerOptions{}
+	if volumeSource != "" {
+		if volumeDestination == "" {
+			volumeDestination = volumeSource
+		}
+		containerOpts.Volumes = []string{fmt.Sprintf("%s:%s", volumeSource, volumeDestination)}
+	}
 	if remote {
 		buildOpts.Iaas = &digitalocean.Digitalocean{}
 	}
 	go func() {
 		defer wait.Done()
-		stdout, stderr, err := gofn.Run(buildOpts,
-			&provision.VolumeOptions{
-				Source:      volumeSource,
-				Destination: volumeDestination,
-			},nil)
+		stdout, stderr, err := gofn.Run(buildOpts, containerOpts)
 		if err != nil {
 			log.Println(err)
 		}
