@@ -49,7 +49,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 			&provision.VolumeOptions{
 				Source:      volumeSource,
 				Destination: volumeDestination,
-			})
+			}, nil)
 		if err != nil {
 			log.Println(err)
 		}

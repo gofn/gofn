@@ -43,6 +43,11 @@ type BuildOptions struct {
 	Iaas                    iaas.Iaas
 }
 
+// ContainerOptions are options used in container
+type ContainerOptions struct {
+	Cmd []string
+}
+
 // GetImageName sets preffix gofn when needed
 func (opts BuildOptions) GetImageName() string {
 	if opts.DoNotUsePrefixImageName {
@@ -68,19 +73,23 @@ func FnRemove(client *docker.Client, containerID string) (err error) {
 }
 
 // FnContainer create container
-func FnContainer(client *docker.Client, image, volume string) (container *docker.Container, err error) {
+func FnContainer(client *docker.Client, image, volume string, cmds []string) (container *docker.Container, err error) {
 	binds := []string{}
 	if volume != "" {
 		binds = append(binds, volume)
 	}
+	config := &docker.Config{
+		Image:     image,
+		StdinOnce: true,
+		OpenStdin: true,
+	}
+	if len(cmds) > 0 {
+		config.Cmd = cmds
+	}
 	container, err = client.CreateContainer(docker.CreateContainerOptions{
 		Name:       fmt.Sprintf("gofn-%s", uuid.NewV4().String()),
 		HostConfig: &docker.HostConfig{Binds: binds},
-		Config: &docker.Config{
-			Image:     image,
-			StdinOnce: true,
-			OpenStdin: true,
-		},
+		Config:     config,
 	})
 	return
 }
@@ -210,7 +219,7 @@ func FnLogs(client *docker.Client, containerID string, stdout io.Writer, stderr 
 }
 
 // FnWaitContainer wait until container finnish your processing
-func FnWaitContainer(client *docker.Client, containerID string) (chan error) {
+func FnWaitContainer(client *docker.Client, containerID string) chan error {
 	errs := make(chan error)
 	go func() {
 		code, err := client.WaitContainer(containerID)

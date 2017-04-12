@@ -20,7 +20,7 @@ func main() {
 		ContextDir: "testDocker",
 		Dockerfile: "Dockerfile",
 		ImageName:  "python",
-	}, nil)
+	}, nil, nil)
 	if err != nil {
 		log.Println(err)
 		return
@@ -36,7 +36,7 @@ func main() {
 		return
 	}
 	err = <-errors
-	if err != nil{
+	if err != nil {
 		log.Println(err)
 	}
 }
