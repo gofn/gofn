@@ -100,7 +100,7 @@ func TestFnContainerCreatedSuccessfully(t *testing.T) {
 	client := NewTestClient(server.URL(), t)
 	image := createFakeImage(client)
 
-	container, err := FnContainer(client, image, "")
+	container, err := FnContainer(client, image, "", []string{"bash"})
 	if err != nil {
 		t.Errorf("Expected no errors but %q found", err)
 	}
@@ -120,7 +120,7 @@ func TestFnContainerInvalidImage(t *testing.T) {
 	client := NewTestClient(server.URL(), t)
 	image := "wrong"
 
-	_, err := FnContainer(client, image, "")
+	_, err := FnContainer(client, image, "", []string{"bash"})
 	if err == nil {
 		t.Errorf("Expected errors but no errors found")
 	}
@@ -137,7 +137,7 @@ func TestFnContainerCreatedWithVolume(t *testing.T) {
 	image := createFakeImage(client)
 
 	volume := "/tmp:/tmp"
-	container, err := FnContainer(client, image, volume)
+	container, err := FnContainer(client, image, volume, []string{"bash"})
 	if err != nil {
 		t.Errorf("Expected no errors but %q found", err)
 	}
