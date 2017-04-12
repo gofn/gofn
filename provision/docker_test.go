@@ -100,7 +100,7 @@ func TestFnContainerCreatedSuccessfully(t *testing.T) {
 	client := NewTestClient(server.URL(), t)
 	image := createFakeImage(client)
 
-	container, err := FnContainer(client, image, "", []string{"bash"})
+	container, err := FnContainer(client, ContainerOptions{Image: image})
 	if err != nil {
 		t.Errorf("Expected no errors but %q found", err)
 	}
@@ -120,7 +120,7 @@ func TestFnContainerInvalidImage(t *testing.T) {
 	client := NewTestClient(server.URL(), t)
 	image := "wrong"
 
-	_, err := FnContainer(client, image, "", []string{"bash"})
+	_, err := FnContainer(client, ContainerOptions{Image: image})
 	if err == nil {
 		t.Errorf("Expected errors but no errors found")
 	}
@@ -137,7 +137,7 @@ func TestFnContainerCreatedWithVolume(t *testing.T) {
 	image := createFakeImage(client)
 
 	volume := "/tmp:/tmp"
-	container, err := FnContainer(client, image, volume, []string{"bash"})
+	container, err := FnContainer(client, ContainerOptions{Image: image, Volumes: []string{volume}})
 	if err != nil {
 		t.Errorf("Expected no errors but %q found", err)
 	}
@@ -336,36 +336,5 @@ func TestFnKilContainerNotFound(t *testing.T) {
 	fakeID := "wrong123"
 	if e := FnKillContainer(client, fakeID); e == nil {
 		t.Errorf("expecting errors, but nothing found")
-	}
-}
-
-func TestFnConfigVolumeAllEmpty(t *testing.T) {
-	volume := FnConfigVolume(&VolumeOptions{})
-	if volume != "" {
-		t.Errorf("Expected \"\" but found %q", volume)
-	}
-}
-
-func TestFnConfigVolumeDestinationOmitted(t *testing.T) {
-	volume := FnConfigVolume(&VolumeOptions{Source: "/tmp"})
-	if volume != "/tmp:/tmp" {
-		t.Errorf("Expected \"/tmp:/tmp\" but found %q", volume)
-	}
-}
-
-func TestFnConfigVolumeOnlyDestination(t *testing.T) {
-	volume := FnConfigVolume(&VolumeOptions{Destination: "/tmp"})
-	if volume != ":/tmp" {
-		t.Errorf("Expected \":/tmp\" but found %q", volume)
-	}
-}
-
-func TestFnConfigVolumeAllFields(t *testing.T) {
-	volume := FnConfigVolume(&VolumeOptions{
-		Source:      "/tmp",
-		Destination: "/tmp",
-	})
-	if volume != "/tmp:/tmp" {
-		t.Errorf("Expected \"/tmp:/tmp\" but found %q", volume)
 	}
 }

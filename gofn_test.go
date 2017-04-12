@@ -12,7 +12,7 @@ func TestRun(t *testing.T) {
 		ContextDir: "./error_path", // this path must not exist
 		ImageName:  "testgofn",
 	}
-	_, _, err := Run(buildOpts, nil, nil)
+	_, _, err := Run(buildOpts, nil)
 	if err == nil {
 		t.Fatal("Expected error but returned nil, this test must fail because the path to Dockerfile does not exist")
 	}

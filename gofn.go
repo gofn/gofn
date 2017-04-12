@@ -28,7 +28,7 @@ func ProvideMachine(service iaas.Iaas) (client *docker.Client, machine *iaas.Mac
 }
 
 // PrepareContainer build an image if necessary and run the container
-func PrepareContainer(client *docker.Client, buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions, containerOpts *provision.ContainerOptions) (container *docker.Container, err error) {
+func PrepareContainer(client *docker.Client, buildOpts *provision.BuildOptions, containerOpts *provision.ContainerOptions) (container *docker.Container, err error) {
 	img, err := provision.FnFindImage(client, buildOpts.GetImageName())
 	if err != nil && err != provision.ErrImageNotFound {
 		return
@@ -44,11 +44,11 @@ func PrepareContainer(client *docker.Client, buildOpts *provision.BuildOptions, 
 		image = buildOpts.GetImageName()
 	}
 
-	volume := ""
-	if volumeOpts != nil {
-		volume = provision.FnConfigVolume(volumeOpts)
+	if containerOpts == nil {
+		containerOpts = &provision.ContainerOptions{}
 	}
-	container, err = provision.FnContainer(client, image, volume, containerOpts.Cmd)
+	containerOpts.Image = image
+	container, err = provision.FnContainer(client, *containerOpts)
 	if err != nil {
 		return
 	}
@@ -71,7 +71,7 @@ func Attach(client *docker.Client, container *docker.Container, stdin io.Reader,
 }
 
 // Run runs the designed image
-func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions, containerOpts *provision.ContainerOptions) (stdout string, stderr string, err error) {
+func Run(buildOpts *provision.BuildOptions, containerOpts *provision.ContainerOptions) (stdout string, stderr string, err error) {
 	var client *docker.Client
 	client, err = provision.FnClient("")
 	if err != nil {
@@ -90,7 +90,7 @@ func Run(buildOpts *provision.BuildOptions, volumeOpts *provision.VolumeOptions,
 	}
 
 	var container *docker.Container
-	container, err = PrepareContainer(client, buildOpts, volumeOpts, containerOpts)
+	container, err = PrepareContainer(client, buildOpts, containerOpts)
 	if err != nil {
 		return
 	}
