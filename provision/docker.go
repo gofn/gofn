@@ -42,6 +42,7 @@ type ContainerOptions struct {
 	Cmd     []string
 	Volumes []string
 	Image   string
+	Env     []string
 }
 
 // GetImageName sets preffix gofn when needed
@@ -73,6 +74,7 @@ func FnContainer(client *docker.Client, opts ContainerOptions) (container *docke
 	config := &docker.Config{
 		Image:     opts.Image,
 		Cmd:       opts.Cmd,
+		Env:       opts.Env,
 		StdinOnce: true,
 		OpenStdin: true,
 	}
