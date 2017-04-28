@@ -151,6 +151,31 @@ func TestFnContainerCreatedWithVolume(t *testing.T) {
 	}
 }
 
+func TestFnContainerCreatedWithEnvVars(t *testing.T) {
+
+	server := createFakeDockerAPI(t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+	image := createFakeImage(client)
+
+	env := "GO=fn"
+	container, err := FnContainer(client, ContainerOptions{Image: image, Env: []string{env}})
+	if err != nil {
+		t.Errorf("Expected no errors but %q found", err)
+	}
+	// container name should starts with gofn
+	if !strings.HasPrefix(container.Name, "gofn") {
+		t.Errorf("container should starts with gofn but found %q", container.Name)
+	}
+	// enviroment variable is set in container
+	if container.Config.Env[0] != env {
+		t.Errorf("expected  %q bout found %q", env, container.Config.Env[0])
+	}
+
+}
+
 func TestFnBuildImageSuccessfully(t *testing.T) {
 	server := createFakeDockerAPI(t)
 	defer server.Stop()
