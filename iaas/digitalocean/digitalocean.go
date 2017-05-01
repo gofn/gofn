@@ -1,8 +1,10 @@
 package digitalocean
 
 import (
+	"crypto/md5"
 	"crypto/rsa"
 	"crypto/x509"
+	"encoding/base64"
 	"encoding/pem"
 	"errors"
 	"fmt"
@@ -220,6 +222,25 @@ func generateFNSSHKey(bits int) (err error) {
 	return
 }
 
+func generateFingerPrint(content string) (fingerPrint string, err error) {
+	parts := strings.Fields(string(content))
+	if len(parts) < 2 {
+		err = errors.New("bad content key")
+		return
+	}
+
+	key, _ := base64.StdEncoding.DecodeString(parts[1])
+
+	fp := md5.Sum([]byte(key))
+	for i, b := range fp {
+		fingerPrint += fmt.Sprintf("%02x", b)
+		if i < len(fp)-1 {
+			fingerPrint += ":"
+		}
+	}
+	return
+}
+
 func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	// Use a key that is already in DO if exist KeyID
 	if do.KeyID != 0 {
@@ -243,24 +264,22 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	if err != nil {
 		return
 	}
-	strContent := strings.TrimSpace(string(content))
-	sshKeys, _, err := do.client.Keys.List(nil)
+
+	fingerPrint, err := generateFingerPrint(string(content))
 	if err != nil {
 		return
 	}
-	for _, key := range sshKeys {
-		sshKey = &key
-		if sshKey.PublicKey == strContent {
+
+	sshKey, _, err = do.client.Keys.GetByFingerprint(fingerPrint)
+	if err != nil {
+		sshKeyRequestCreate := &godo.KeyCreateRequest{
+			Name:      "GOFN",
+			PublicKey: string(content),
+		}
+		sshKey, _, err = do.client.Keys.Create(sshKeyRequestCreate)
+		if err != nil {
 			return
 		}
-	}
-	sshKeyRequestCreate := &godo.KeyCreateRequest{
-		Name:      "GOFN",
-		PublicKey: strContent,
-	}
-	sshKey, _, err = do.client.Keys.Create(sshKeyRequestCreate)
-	if err != nil {
-		return
 	}
 	return
 }
@@ -401,6 +420,8 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 	if pkPath == "" {
 		pkPath = filepath.Join(KeysDir, PrivateKeyName)
 	}
+
+	// TODO: dynamic user
 	sshConfig := &ssh.ClientConfig{
 		User: "root",
 		Auth: []ssh.AuthMethod{
