@@ -223,7 +223,7 @@ func generateFNSSHKey(bits int) (err error) {
 }
 
 func generateFingerPrint(content string) (fingerPrint string, err error) {
-	parts := strings.Fields(string(content))
+	parts := strings.Fields(content)
 	if len(parts) < 2 {
 		err = errors.New("bad content key")
 		return
@@ -231,7 +231,7 @@ func generateFingerPrint(content string) (fingerPrint string, err error) {
 
 	key, _ := base64.StdEncoding.DecodeString(parts[1])
 
-	fp := md5.Sum([]byte(key))
+	fp := md5.Sum(key)
 	for i, b := range fp {
 		fingerPrint += fmt.Sprintf("%02x", b)
 		if i < len(fp)-1 {
