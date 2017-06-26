@@ -52,6 +52,7 @@ type Digitalocean struct {
 	Size      string
 	ImageSlug string
 	KeyID     int
+	Ctx       context.Context
 }
 
 // GetRegion returns region or default if empty
@@ -106,7 +107,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
-	snapshots, _, err := do.client.Snapshots.List(nil)
+	snapshots, _, err := do.client.Snapshots.List(do.Ctx, nil)
 	if err != nil {
 		return
 	}
@@ -144,7 +145,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 			},
 		},
 	}
-	newDroplet, _, err := do.client.Droplets.Create(createRequest)
+	newDroplet, _, err := do.client.Droplets.Create(do.Ctx, createRequest)
 	if err != nil {
 		return
 	}
@@ -244,7 +245,7 @@ func generateFingerPrint(content string) (fingerPrint string, err error) {
 func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	// Use a key that is already in DO if exist KeyID
 	if do.KeyID != 0 {
-		sshKey, _, err = do.client.Keys.GetByID(do.KeyID)
+		sshKey, _, err = do.client.Keys.GetByID(do.Ctx, do.KeyID)
 		if err != nil {
 			return
 		}
@@ -270,13 +271,13 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 		return
 	}
 
-	sshKey, _, err = do.client.Keys.GetByFingerprint(fingerPrint)
+	sshKey, _, err = do.client.Keys.GetByFingerprint(do.Ctx, fingerPrint)
 	if err != nil {
 		sshKeyRequestCreate := &godo.KeyCreateRequest{
 			Name:      "GOFN",
 			PublicKey: string(content),
 		}
-		sshKey, _, err = do.client.Keys.Create(sshKeyRequestCreate)
+		sshKey, _, err = do.client.Keys.Create(do.Ctx, sshKeyRequestCreate)
 		if err != nil {
 			return
 		}
@@ -291,10 +292,10 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	if err != nil {
 		return
 	}
-	action, _, err := do.client.DropletActions.Shutdown(id)
+	action, _, err := do.client.DropletActions.Shutdown(do.Ctx, id)
 	if err != nil {
 		// Power off force Shutdown
-		action, _, err = do.client.DropletActions.PowerOff(id)
+		action, _, err = do.client.DropletActions.PowerOff(do.Ctx, id)
 		if err != nil {
 			return
 		}
@@ -311,7 +312,7 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 				return
 			default:
 				var d *godo.Action
-				d, _, err = do.client.DropletActions.Get(id, action.ID)
+				d, _, err = do.client.DropletActions.Get(do.Ctx, id, action.ID)
 				if err != nil {
 					errs <- err
 					return
@@ -325,7 +326,7 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	}()
 	select {
 	case action = <-ac:
-		_, err = do.client.Droplets.Delete(id)
+		_, err = do.client.Droplets.Delete(do.Ctx, id)
 		return
 	case err = <-errs:
 		return
@@ -342,7 +343,7 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 	if err != nil {
 		return
 	}
-	action, _, err := do.client.DropletActions.Snapshot(id, "GOFN")
+	action, _, err := do.client.DropletActions.Snapshot(do.Ctx, id, "GOFN")
 	if err != nil {
 		return
 	}
@@ -358,7 +359,7 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 				return
 			default:
 				var d *godo.Action
-				d, _, err = do.client.DropletActions.Get(id, action.ID)
+				d, _, err = do.client.DropletActions.Get(do.Ctx, id, action.ID)
 				if err != nil {
 					errs <- err
 					return
@@ -462,7 +463,7 @@ func (do *Digitalocean) waitNetworkCreated(droplet *godo.Droplet) (upDroplet *go
 			case <-quit:
 				return
 			default:
-				d, _, err := do.client.Droplets.Get(droplet.ID)
+				d, _, err := do.client.Droplets.Get(do.Ctx, droplet.ID)
 				if err != nil {
 					errs <- err
 					return

@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 
@@ -10,7 +11,9 @@ import (
 )
 
 func main() {
-	iaas := &digitalocean.Digitalocean{}
+	iaas := &digitalocean.Digitalocean{
+		Ctx: context.TODO(),
+	}
 	client, machine, err := gofn.ProvideMachine(iaas)
 	if err != nil {
 		log.Fatal(err)
