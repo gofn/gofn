@@ -12,7 +12,7 @@ import (
 
 func main() {
 	iaas := &digitalocean.Digitalocean{
-		Ctx: context.TODO(),
+		Ctx: context.Background(),
 	}
 	client, machine, err := gofn.ProvideMachine(iaas)
 	if err != nil {

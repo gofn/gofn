@@ -50,7 +50,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	}
 	if remote {
 		buildOpts.Iaas = &digitalocean.Digitalocean{
-			Ctx: context.TODO(),
+			Ctx: context.Background(),
 		}
 	}
 	go func() {
