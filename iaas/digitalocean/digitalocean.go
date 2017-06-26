@@ -17,7 +17,7 @@ import (
 	"strings"
 	"time"
 
-	"golang.org/x/net/context"
+	"context"
 
 	"crypto/rand"
 
@@ -424,7 +424,8 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 
 	// TODO: dynamic user
 	sshConfig := &ssh.ClientConfig{
-		User: "root",
+		User:            "root",
+		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Auth: []ssh.AuthMethod{
 			publicKeyFile(pkPath),
 		},
