@@ -17,7 +17,7 @@ matrix:
   - go: tip
 
 before_install:
-  - go get ./...
+  - go get -t ./...
 
 script:
   - make coverage
