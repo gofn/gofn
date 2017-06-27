@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"context"
 	"fmt"
 	"io/ioutil"
 	"log"
@@ -115,7 +116,7 @@ func TestAuth(t *testing.T) {
 		{"apikey", "http://127.0.0.1:3000", "http://127.0.0.1:3000", true},
 		{"apikey", "://localhost", "", false},
 	} {
-		do := &Digitalocean{}
+		do := &Digitalocean{Ctx: context.Background()}
 		err := os.Setenv("DIGITALOCEAN_API_KEY", test.apiKEY)
 		if err != nil {
 			t.Fatal(err)
@@ -211,7 +212,7 @@ func TestCreateMachine(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	m, err := do.CreateMachine()
 	if err != nil {
 		// temporary solution because we don't have a real ip to connect
@@ -238,7 +239,7 @@ func TestCreateMachineWrongAuth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	m, err := do.CreateMachine()
 	if err == nil || m != nil {
 		t.Errorf("expected erros but run without errors")
@@ -292,7 +293,7 @@ func TestCreateMachineWrongIP(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	_, err := do.CreateMachine()
 	if err == nil {
 		t.Errorf("expected errors but run without errors")
@@ -346,7 +347,7 @@ func TestCreateMachineRequestError(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	_, err := do.CreateMachine()
 	if err == nil {
 		t.Errorf("expected errors but run without errors")
@@ -430,7 +431,7 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	m, err := do.CreateMachine()
 	if err != nil {
 		// temporary solution because we don't have a real ip to connect
@@ -508,7 +509,7 @@ func TestCreateMachineWithWrongSSHKey(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	_, err := do.CreateMachine()
 	if err == nil {
 		t.Fatalf("Expected run with errors but not has %q", err)
@@ -571,7 +572,7 @@ func TestCreateMachineWithWrongSSHKeyList(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	_, err := do.CreateMachine()
 	if err == nil {
 		t.Fatalf("Expected run with errors but not has %q", err)
@@ -638,7 +639,7 @@ func TestCreateMachineWithoutSSHKey(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	_, err = do.CreateMachine()
 	if err == nil {
 		t.Fatalf("Expected run with errors but not has %q", err)
@@ -705,7 +706,7 @@ func TestCreateMachineWithWrongSSHKeyPath(t *testing.T) {
 		}
 	})
 	defineListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	_, err = do.CreateMachine()
 	if err == nil {
 		t.Fatalf("Expected run with errors but not has %q", err)
@@ -767,7 +768,7 @@ func TestCreateMachineWrongSnapshotList(t *testing.T) {
 		}
 	})
 	defineBrokenListSnapshotsEndpoint()
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	_, err := do.CreateMachine()
 	if err == nil {
 		t.Fatalf("Expected run with errors but  not has")
@@ -850,7 +851,7 @@ func TestDeleteMachine(t *testing.T) {
 		fmt.Fprintln(w, action)
 		return
 	})
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "503"}
 	err := do.DeleteMachine(machine)
 	if err != nil {
@@ -924,7 +925,7 @@ func TestDeleteMachineWithShutdownError(t *testing.T) {
 		fmt.Fprintln(w, action)
 		return
 	})
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "503"}
 	err := do.DeleteMachine(machine)
 	if err != nil {
@@ -978,7 +979,7 @@ func TestDeleteMachineWithShutdownErrorAndPowerOff(t *testing.T) {
 	mux.HandleFunc("/v2/droplets/503", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(204)
 	})
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "503"}
 	err := do.DeleteMachine(machine)
 	if err == nil {
@@ -991,7 +992,7 @@ func TestDeleteMachineWrongAuth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "503"}
 	err = do.DeleteMachine(machine)
 	if err == nil {
@@ -1037,7 +1038,7 @@ func TestCreateSnapshot(t *testing.T) {
 
 	})
 
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "123"}
 	err := do.CreateSnapshot(machine)
 	if err != nil {
@@ -1050,7 +1051,7 @@ func TestCreateSnapshotWrongAuth(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "503"}
 	err = do.CreateSnapshot(machine)
 	if err == nil {
@@ -1080,7 +1081,7 @@ func TestCreateSnapshotActionError(t *testing.T) {
 
 	})
 
-	do := &Digitalocean{}
+	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "123"}
 	err := do.CreateSnapshot(machine)
 	if err == nil {

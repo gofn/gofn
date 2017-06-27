@@ -2,6 +2,7 @@ package gofn
 
 import (
 	"bytes"
+	"fmt"
 	"io"
 
 	docker "github.com/fsouza/go-dockerclient"
@@ -16,7 +17,10 @@ func ProvideMachine(service iaas.Iaas) (client *docker.Client, machine *iaas.Mac
 	machine, err = service.CreateMachine()
 	if err != nil {
 		if machine != nil {
-			err = service.DeleteMachine(machine)
+			cerr := service.DeleteMachine(machine)
+			if cerr != nil {
+				fmt.Println(cerr.Error())
+			}
 		}
 		return
 	}

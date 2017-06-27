@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -48,7 +49,9 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 		containerOpts.Volumes = []string{fmt.Sprintf("%s:%s", volumeSource, volumeDestination)}
 	}
 	if remote {
-		buildOpts.Iaas = &digitalocean.Digitalocean{}
+		buildOpts.Iaas = &digitalocean.Digitalocean{
+			Ctx: context.Background(),
+		}
 	}
 	go func() {
 		defer wait.Done()

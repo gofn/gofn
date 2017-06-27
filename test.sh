@@ -1,9 +1,9 @@
-#!/usr/bin/env bash
+#!/bin/sh
 
 set -e
 echo "" > coverage.txt
 
-for d in $(go list ./... | grep -v vendor); do
+for d in $(go list ./... | grep -v vendor | grep -v examples); do
     go test -race -coverprofile=profile.out -covermode=atomic $d
     if [ -f profile.out ]; then
         cat profile.out >> coverage.txt
