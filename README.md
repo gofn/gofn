@@ -29,15 +29,13 @@ import (
 	"flag"
 	"fmt"
 	"log"
-
+	"runtime"
 	"sync"
 
 	"github.com/nuveo/gofn"
 	"github.com/nuveo/gofn/iaas/digitalocean"
 	"github.com/nuveo/gofn/provision"
 )
-
-const parallels = 3
 
 func main() {
 	wait := &sync.WaitGroup{}
@@ -50,9 +48,10 @@ func main() {
 	remoteBuild := flag.Bool("remoteBuild", false, "true or false")
 	input := flag.String("input", "", "a string")
 	flag.Parse()
+	parallels := runtime.GOMAXPROCS(-1) // use max allowed CPUs to parallelize
 	wait.Add(parallels)
 	for i := 0; i < parallels; i++ {
-		run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait, *remoteBuild, *input)
+		go run(*contextDir, *dockerfile, *imageName, *remoteBuildURI, *volumeSource, *volumeDestination, wait, *remoteBuild, *input)
 	}
 	wait.Wait()
 }
@@ -75,15 +74,14 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	if remote {
 		buildOpts.Iaas = &digitalocean.Digitalocean{}
 	}
-	go func() {
-		defer wait.Done()
-		stdout, stderr, err := gofn.Run(buildOpts, containerOpts)
-		if err != nil {
-			log.Println(err)
-		}
-		fmt.Println("Stderr: ", stderr)
-		fmt.Println("Stdout: ", stdout)
-	}()
+
+	defer wait.Done()
+	stdout, stderr, err := gofn.Run(buildOpts, containerOpts)
+	if err != nil {
+		log.Println(err)
+	}
+	fmt.Println("Stderr: ", stderr)
+	fmt.Println("Stdout: ", stdout)
 }
 ```
 
