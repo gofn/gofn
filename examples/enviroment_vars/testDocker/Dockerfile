@@ -1,1 +1,1 @@
-FROM alpine:lastest
+FROM alpine:latest

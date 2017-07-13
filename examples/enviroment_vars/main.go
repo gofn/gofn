@@ -11,7 +11,7 @@ import (
 func main() {
 	buildOpts := &provision.BuildOptions{
 		ContextDir: "./testDocker",
-		ImageName:  "gofn/env",
+		ImageName:  "env",
 	}
 	containerOpts := &provision.ContainerOptions{
 		Env: []string{"FOO=bar", "KEY=value"},
