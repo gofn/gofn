@@ -11,15 +11,16 @@ import (
 )
 
 func main() {
+	ctx := context.Background()
 	iaas := &digitalocean.Digitalocean{
-		Ctx: context.Background(),
+		Ctx: ctx,
 	}
-	client, machine, err := gofn.ProvideMachine(iaas)
+	client, machine, err := gofn.ProvideMachine(ctx, iaas)
 	if err != nil {
 		log.Fatal(err)
 	}
 	defer iaas.DeleteMachine(machine)
-	container, err := gofn.PrepareContainer(client, &provision.BuildOptions{
+	container, err := gofn.PrepareContainer(ctx, client, &provision.BuildOptions{
 		ContextDir: "testDocker",
 		Dockerfile: "Dockerfile",
 		ImageName:  "python",
@@ -28,12 +29,12 @@ func main() {
 		log.Println(err)
 		return
 	}
-	errors, err := gofn.RunWait(client, container)
+	errors, err := gofn.RunWait(ctx, client, container)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-	_, err = gofn.Attach(client, container, nil, os.Stdout, os.Stderr)
+	_, err = gofn.Attach(ctx, client, container, nil, os.Stdout, os.Stderr)
 	if err != nil {
 		log.Println(err)
 		return

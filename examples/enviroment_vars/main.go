@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 
@@ -17,7 +18,7 @@ func main() {
 		Env: []string{"FOO=bar", "KEY=value"},
 		Cmd: []string{"env"},
 	}
-	stdout, stderr, err := gofn.Run(buildOpts, containerOpts)
+	stdout, stderr, err := gofn.Run(context.Background(), buildOpts, containerOpts)
 	if err != nil {
 		log.Println(err)
 	}
