@@ -112,7 +112,7 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 		buffout, bufferr, err = provision.FnRun(client, container.ID, buildOpts.StdIN)
 		stdout = buffout.String()
 		stderr = bufferr.String()
-
+		done <- struct{}{}
 	}(ctx, done)
 	select {
 	case <-ctx.Done():
