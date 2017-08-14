@@ -3,13 +3,12 @@ package gofn
 import (
 	"bytes"
 	"context"
-	"fmt"
 	"io"
-	"os"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/nuveo/gofn/iaas"
 	"github.com/nuveo/gofn/provision"
+	"github.com/nuveo/log"
 )
 
 const dockerPort = ":2375"
@@ -21,15 +20,12 @@ func ProvideMachine(ctx context.Context, service iaas.Iaas) (client *docker.Clie
 		if machine != nil {
 			cerr := service.DeleteMachine(machine)
 			if cerr != nil {
-				fmt.Println(cerr.Error())
+				log.Errorln(cerr)
 			}
 		}
 		return
 	}
 	client, err = provision.FnClient(machine.IP + dockerPort)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -55,9 +51,6 @@ func PrepareContainer(ctx context.Context, client *docker.Client, buildOpts *pro
 	}
 	containerOpts.Image = image
 	container, err = provision.FnContainer(client, *containerOpts)
-	if err != nil {
-		return
-	}
 	return
 }
 
@@ -80,6 +73,7 @@ func Attach(ctx context.Context, client *docker.Client, container *docker.Contai
 func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *provision.ContainerOptions) (stdout string, stderr string, err error) {
 	var client *docker.Client
 	var container *docker.Container
+	var machine *iaas.Machine
 	done := make(chan struct{})
 	go func(ctx context.Context, done chan struct{}) {
 		client, err = provision.FnClient("")
@@ -89,15 +83,11 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 		}
 
 		if buildOpts.Iaas != nil {
-			var machine *iaas.Machine
 			client, machine, err = ProvideMachine(ctx, buildOpts.Iaas)
 			if err != nil {
 				done <- struct{}{}
 				return
 			}
-			defer func() {
-				err = buildOpts.Iaas.DeleteMachine(machine)
-			}()
 		}
 
 		container, err = PrepareContainer(ctx, client, buildOpts, containerOpts)
@@ -116,18 +106,25 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 	}(ctx, done)
 	select {
 	case <-ctx.Done():
-		fmt.Printf("trying to destroy container %v\n", ctx.Err())
+		log.Printf("trying to destroy container %v\n", ctx.Err())
 	case <-done:
-		fmt.Println("trying to destroy container process done")
+		log.Println("trying to destroy container process done")
+	}
+	if machine != nil {
+		derr := buildOpts.Iaas.DeleteMachine(machine)
+		if derr != nil {
+			log.Errorln(derr)
+		}
+		return
 	}
 	if client != nil && container != nil {
 		derr := DestroyContainer(context.Background(), client, container)
 		if derr != nil {
-			fmt.Fprintln(os.Stderr, err)
+			log.Errorln(derr)
 		}
 		return
 	}
-	fmt.Fprintln(os.Stderr, "docker client and container is nil")
+	log.Errorln("docker client and container is nil")
 	return
 }
 
