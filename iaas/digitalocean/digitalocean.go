@@ -29,7 +29,7 @@ import (
 )
 
 const (
-	defaultRegion    = "nyc1"
+	defaultRegion    = "nyc3"
 	defaultSize      = "512mb"
 	defaultImageSlug = "debian-8-x64"
 )
