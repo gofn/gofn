@@ -1,11 +1,6 @@
 package digitalocean
 
 import (
-	"crypto/md5"
-	"crypto/rsa"
-	"crypto/x509"
-	"encoding/base64"
-	"encoding/pem"
 	"errors"
 	"fmt"
 	"io/ioutil"
@@ -14,15 +9,13 @@ import (
 	"os"
 	"path/filepath"
 	"strconv"
-	"strings"
 	"time"
 
 	"context"
 
-	"crypto/rand"
-
 	"github.com/digitalocean/godo"
 	"github.com/nuveo/gofn/iaas"
+	gofnssh "github.com/nuveo/gofn/ssh"
 	"github.com/nuveo/log"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/ssh"
@@ -37,15 +30,6 @@ const (
 )
 
 var (
-	// KeysDir is the directory where keys are stored
-	KeysDir = "./.gofn/keys"
-	// PrivateKeyName is the default name of private key
-	PrivateKeyName = "id_rsa"
-	// PublicKeyName is the default name of public key
-	PublicKeyName = "id_rsa.pub"
-	// SSHPort is the default ssh port
-	SSHPort = ":22"
-
 	// ErrSnapshotNotFound is the error returned if
 	// ErrorIfSnapshotNotExist is true and there is no snapshot
 	// with name defined in SnapshotName
@@ -210,65 +194,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	return
 }
 
-func writePEM(path string, content []byte, filePermission os.FileMode, dirPermission os.FileMode) (err error) {
-	err = os.MkdirAll(KeysDir, dirPermission)
-	if err != nil {
-		return
-	}
-	err = ioutil.WriteFile(path, content, filePermission)
-	return
-}
-
-func generatePublicKey(privateKey *rsa.PrivateKey) (err error) {
-	publicKey := privateKey.PublicKey
-	pub, _ := ssh.NewPublicKey(&publicKey)
-	path := filepath.Join(KeysDir, PublicKeyName)
-	err = writePEM(path, ssh.MarshalAuthorizedKey(pub), 0644, 0700)
-	return
-}
-
-func generatePrivateKey(bits int) (privateKey *rsa.PrivateKey, err error) {
-	privateKey, _ = rsa.GenerateKey(rand.Reader, bits)
-	privateKeyDer := x509.MarshalPKCS1PrivateKey(privateKey)
-	privateKeyBlock := pem.Block{
-		Type:    "RSA PRIVATE KEY",
-		Headers: nil,
-		Bytes:   privateKeyDer,
-	}
-	privateKeyPem := pem.EncodeToMemory(&privateKeyBlock)
-	path := filepath.Join(KeysDir, PrivateKeyName)
-	err = writePEM(path, privateKeyPem, 0600, 0700)
-	return
-}
-
-func generateFNSSHKey(bits int) (err error) {
-	privateKey, err := generatePrivateKey(bits)
-	if err != nil {
-		return
-	}
-	err = generatePublicKey(privateKey)
-	return
-}
-
-func generateFingerPrint(content string) (fingerPrint string, err error) {
-	parts := strings.Fields(content)
-	if len(parts) < 2 {
-		err = errors.New("bad content key")
-		return
-	}
-
-	key, _ := base64.StdEncoding.DecodeString(parts[1])
-
-	fp := md5.Sum(key)
-	for i, b := range fp {
-		fingerPrint += fmt.Sprintf("%02x", b)
-		if i < len(fp)-1 {
-			fingerPrint += ":"
-		}
-	}
-	return
-}
-
 func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	// Use a key that is already in DO if exist KeyID
 	if do.KeyID != 0 {
@@ -280,9 +205,9 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 	}
 	sshFilePath := os.Getenv("GOFN_SSH_PUBLICKEY_PATH")
 	if sshFilePath == "" {
-		path := filepath.Join(KeysDir, PublicKeyName)
+		path := filepath.Join(gofnssh.KeysDir, gofnssh.PublicKeyName)
 		if !existsKey(path) {
-			if err = generateFNSSHKey(4096); err != nil {
+			if err = gofnssh.GenerateFNSSHKey(4096); err != nil {
 				return
 			}
 		}
@@ -293,7 +218,7 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 		return
 	}
 
-	fingerPrint, err := generateFingerPrint(string(content))
+	fingerPrint, err := gofnssh.GenerateFingerPrint(string(content))
 	if err != nil {
 		return
 	}
@@ -429,7 +354,7 @@ func probeConnection(ip string, maxRetries int) error {
 		err  error
 	)
 	for counter < maxRetries {
-		conn, err = net.DialTimeout("tcp", ip+SSHPort, time.Duration(500)*time.Millisecond)
+		conn, err = net.DialTimeout("tcp", ip+gofnssh.Port, time.Duration(500)*time.Millisecond)
 		if err == nil {
 			return nil
 		}
@@ -447,7 +372,7 @@ func probeConnection(ip string, maxRetries int) error {
 func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output []byte, err error) {
 	pkPath := os.Getenv("GOFN_SSH_PRIVATEKEY_PATH")
 	if pkPath == "" {
-		pkPath = filepath.Join(KeysDir, PrivateKeyName)
+		pkPath = filepath.Join(gofnssh.KeysDir, gofnssh.PrivateKeyName)
 	}
 
 	// TODO: dynamic user
@@ -464,7 +389,7 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 	if err != nil {
 		return
 	}
-	connection, err := ssh.Dial("tcp", machine.IP+SSHPort, sshConfig)
+	connection, err := ssh.Dial("tcp", machine.IP+gofnssh.Port, sshConfig)
 	if err != nil {
 		return
 	}
