@@ -216,7 +216,7 @@ func TestCreateMachine(t *testing.T) {
 	m, err := do.CreateMachine()
 	if err != nil {
 		// temporary solution because we don't have a real ip to connect
-		if !strings.Contains(err.Error(), "ssh: handshake failed") {
+		if !strings.Contains(err.Error(), "dial tcp 104.131.186.241:22: getsockopt: connection refused") {
 			t.Fatalf("Expected run without errors but has %q", err)
 		}
 	}
@@ -435,7 +435,7 @@ func TestCreateMachineWithNewSSHKey(t *testing.T) {
 	m, err := do.CreateMachine()
 	if err != nil {
 		// temporary solution because we don't have a real ip to connect
-		if !strings.Contains(err.Error(), "ssh: handshake failed") {
+		if !strings.Contains(err.Error(), "dial tcp 104.131.186.241:22: getsockopt: connection refused") {
 			t.Fatalf("Expected run without errors but has %q", err)
 		}
 	}
@@ -849,7 +849,6 @@ func TestDeleteMachine(t *testing.T) {
 				}
 			}`
 		fmt.Fprintln(w, action)
-		return
 	})
 	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "503"}
@@ -923,7 +922,6 @@ func TestDeleteMachineWithShutdownError(t *testing.T) {
 				}
 			}`
 		fmt.Fprintln(w, action)
-		return
 	})
 	do := &Digitalocean{Ctx: context.Background()}
 	machine := &iaas.Machine{ID: "503"}
