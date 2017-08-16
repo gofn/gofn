@@ -30,9 +30,10 @@ import (
 )
 
 const (
-	defaultRegion    = "nyc3"
-	defaultSize      = "512mb"
-	defaultImageSlug = "debian-8-x64"
+	defaultRegion       = "nyc3"
+	defaultSize         = "512mb"
+	defaultImageSlug    = "debian-8-x64"
+	defaultSnapshotName = "GOFN"
 )
 
 var (
@@ -44,6 +45,11 @@ var (
 	PublicKeyName = "id_rsa.pub"
 	// SSHPort is the default ssh port
 	SSHPort = ":22"
+
+	// ErrSnapshotNotFound is the error returned if
+	// ErrorIfSnapshotNotExist is true and there is no snapshot
+	// with name defined in SnapshotName
+	ErrSnapshotNotFound = errors.New("snapshot not found")
 )
 
 // Digitalocean definition, represents a concrete implementation of an iaas
@@ -54,6 +60,21 @@ type Digitalocean struct {
 	ImageSlug string
 	KeyID     int
 	Ctx       context.Context
+	// SnapshotName if not defined GOFN will be used.
+	SnapshotName string
+	// ErrorIfSnapshotNotExist if true CreateMachine
+	// returns error if a snapshot does not exist,
+	// if false the system will try to create a snapshot,
+	// defalt false.
+	ErrorIfSnapshotNotExist bool
+}
+
+// GetSnapshotName returns snapshot name or default if empty
+func (do Digitalocean) GetSnapshotName() string {
+	if do.SnapshotName == "" {
+		return defaultSnapshotName
+	}
+	return do.SnapshotName
 }
 
 // GetRegion returns region or default if empty
@@ -108,17 +129,24 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
-	snapshots, _, err := do.client.Snapshots.List(do.Ctx, nil)
+	lo := godo.ListOptions{
+		Page:    1,
+		PerPage: 999999,
+	}
+	snapshots, _, err := do.client.Snapshots.List(do.Ctx, &lo)
 	if err != nil {
 		return
 	}
-
 	snapshot := godo.Snapshot{}
 	for _, s := range snapshots {
-		if s.Name == "GOFN" {
+		if s.Name == do.GetSnapshotName() {
 			snapshot = s
 			break
 		}
+	}
+	if snapshot.Name == "" && do.ErrorIfSnapshotNotExist {
+		err = ErrSnapshotNotFound
+		return
 	}
 	image := godo.DropletCreateImage{
 		Slug: do.GetImageSlug(),
@@ -129,7 +157,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 			ID: id,
 		}
 	}
-
 	sshKey, err := do.getSSHKeyForDroplet()
 	if err != nil {
 		return
@@ -154,7 +181,6 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
-
 	ipv4, err := newDroplet.PublicIPv4()
 	if err != nil {
 		return
@@ -345,7 +371,7 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 	if err != nil {
 		return
 	}
-	action, _, err := do.client.DropletActions.Snapshot(do.Ctx, id, "GOFN")
+	action, _, err := do.client.DropletActions.Snapshot(do.Ctx, id, do.GetSnapshotName())
 	if err != nil {
 		return
 	}
