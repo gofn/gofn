@@ -1086,34 +1086,3 @@ func TestCreateSnapshotActionError(t *testing.T) {
 		t.Errorf("expected run with errors but not has")
 	}
 }
-
-func TestGeneratePrivateSSHKey(t *testing.T) {
-	private, err := generatePrivateKey(32)
-	if err != nil {
-		t.Errorf("expected run without errors but has %q", err)
-	}
-	if private == nil {
-		t.Errorf("expected private not nil but is nil")
-	}
-}
-
-func TestGeneratePublicSSHKey(t *testing.T) {
-	private, err := generatePrivateKey(32)
-	if err != nil {
-		t.Errorf("expected run without errors but has %q", err)
-	}
-	if private == nil {
-		t.Errorf("expected private not nil but is nil")
-	}
-	err = generatePublicKey(private)
-	if err != nil {
-		t.Errorf("expected run without errors but has %q", err)
-	}
-}
-
-func TestGenerateFNSSHKey(t *testing.T) {
-	err := generateFNSSHKey(32)
-	if err != nil {
-		t.Errorf("expected run without errors but has %q", err)
-	}
-}
