@@ -84,18 +84,15 @@ func (s *FakeServer) Address() (addr string) {
 }
 
 func (s *FakeServer) start() {
+	err := GenerateFNSSHKey(4096)
+	if err != nil {
+		s.Stop()
+		s.t.Fatal(err)
+	}
 	byt, err := ioutil.ReadFile(filepath.Join(KeysDir, PrivateKeyName))
 	if err != nil {
-		err = GenerateFNSSHKey(4096)
-		if err != nil {
-			s.Stop()
-			s.t.Fatal(err)
-		}
-		byt, err = ioutil.ReadFile(filepath.Join(KeysDir, PrivateKeyName))
-		if err != nil {
-			s.Stop()
-			s.t.Fatal(err)
-		}
+		s.Stop()
+		s.t.Fatal(err)
 	}
 	k, err := ssh.ParsePrivateKey(byt)
 	if err != nil {
