@@ -18,6 +18,7 @@ matrix:
 
 before_install:
   - go get -t ./...
+  - eval "$(ssh-agent -s)"
 
 script:
   - make coverage
