@@ -7,7 +7,6 @@ import (
 	"io"
 	"io/ioutil"
 	"net"
-	"os"
 	"path/filepath"
 	"testing"
 	"time"
@@ -123,7 +122,7 @@ func (s *FakeServer) start() {
 func (s *FakeServer) handleConnections() {
 	for {
 		if s.ConnDelay > 0 {
-			time.Sleep(s.ConnDelay)
+			<-time.After(s.ConnDelay)
 		}
 		tcpConn, err := s.listener.Accept()
 		if err != nil {
@@ -144,10 +143,6 @@ func (s *FakeServer) handleChannels(chans <-chan ssh.NewChannel) {
 	}
 }
 
-type channelRequestSuccessMsg struct {
-	PeersID uint32 `sshtype:"99"`
-}
-
 func (s *FakeServer) handleChannel(newChannel ssh.NewChannel) {
 	if t := newChannel.ChannelType(); t != "session" {
 		newChannel.Reject(ssh.UnknownChannelType, fmt.Sprintf("unknown channel type: %s", t))
@@ -159,35 +154,25 @@ func (s *FakeServer) handleChannel(newChannel ssh.NewChannel) {
 		log.Printf("Could not accept channel (%s)", err)
 		return
 	}
-	defer ch.Close()
-	for req := range requests {
-		s.parseRequest(req, ch)
-		return
-	}
-}
+	go func(in <-chan *ssh.Request) {
+		defer ch.Close()
+		for req := range in {
+			switch req.Type {
+			case "exec":
+				req.Reply(true, nil)
+				go io.Copy(bytes.NewBufferString(s.Cmd), ch)
+				io.Copy(ch, bytes.NewBufferString(s.Reply))
 
-func (s *FakeServer) parseRequest(req *ssh.Request, ch ssh.Channel) {
-	if req.Type != "exec" {
-		panic(fmt.Errorf("Unsupported request type: %s", req.Type))
-	}
-	// first 4 bytes is length, ignore it
-	cmd := string(req.Payload[4:])
-	if cmd != s.Cmd {
-		panic(fmt.Errorf("Unknown cmd: %s", cmd))
-	}
-
-	if !req.WantReply {
-		panic(fmt.Errorf("Expected that want reply is always set"))
-	}
-	if s.ExecDelay > 0 {
-		time.Sleep(s.ExecDelay)
-	}
-	req.Reply(true, ssh.Marshal(&channelRequestSuccessMsg{}))
-	ch.Write([]byte(s.Reply))
-
-	var b bytes.Buffer
-	binary.Write(&b, binary.BigEndian, uint32(s.ExitStatus))
-	ch.SendRequest("exit-status", false, b.Bytes())
-	io.Copy(os.Stdout, ch)
-	io.Copy(os.Stderr, ch.Stderr())
+				if s.ExecDelay > 0 {
+					<-time.After(s.ExecDelay)
+				}
+				b := &bytes.Buffer{}
+				binary.Write(b, binary.BigEndian, uint32(s.ExitStatus))
+				ch.SendRequest("exit-status", false, b.Bytes())
+				ch.SendRequest("exit-status", false, []byte{0, 0, 0, 0})
+				return
+			default:
+			}
+		}
+	}(requests)
 }

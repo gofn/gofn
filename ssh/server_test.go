@@ -8,7 +8,7 @@ import (
 )
 
 func TestFakeServer(t *testing.T) {
-	server, err := NewServer(t, "localhost:4400", "echo test", "test", 0, 0, 0)
+	server, err := NewServer(t, "localhost:0", "echo test", "test", 0, 0, 0)
 	if err != nil {
 		t.Fatal(err)
 	}
