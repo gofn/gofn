@@ -124,9 +124,18 @@ func (s *FakeServer) handleConnections() {
 		if s.ConnDelay > 0 {
 			<-time.After(s.ConnDelay)
 		}
+		addr := s.Address()
 		tcpConn, err := s.listener.Accept()
 		if err != nil {
-			panic(fmt.Errorf("Failed to accept incoming connection: %s", err))
+			s.Stop()
+			s.listener, err = net.Listen("tcp", addr)
+			if err != nil {
+				panic(fmt.Errorf("Failed to accept incoming connection: %s", err))
+			}
+			tcpConn, err = s.listener.Accept()
+			if err != nil {
+				panic(fmt.Errorf("Failed to accept incoming connection: %s", err))
+			}
 		}
 		_, chans, reqs, err := ssh.NewServerConn(tcpConn, s.conf)
 		if err != nil {
