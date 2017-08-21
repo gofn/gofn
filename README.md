@@ -26,6 +26,7 @@ go get github.com/nuveo/gofn
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -76,7 +77,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	}
 
 	defer wait.Done()
-	stdout, stderr, err := gofn.Run(buildOpts, containerOpts)
+	stdout, stderr, err := gofn.Run(context.Background(), buildOpts, containerOpts)
 	if err != nil {
 		log.Println(err)
 	}
@@ -88,17 +89,22 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 ### Run Example
 
 ```bash
-	cd examples
-	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile
-	# or using volume
-	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -volumeSource=/tmp -volumeDestination=/tmp
-	# or using remote Dockerfile
-	go run main.go -remoteBuildURI=https://github.com/gofn/dockerfile-python-example.git -imageName="pythonexample"
-	# you can also send a string that will be written to the stdin of the container
-	go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -input "input string"
-    # or run in digital ocean
-    export DIGITALOCEAN_API_KEY="paste your key here"
-    go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -remoteBuild=true
+cd examples
+
+go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile
+
+# or using volume
+go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -volumeSource=/tmp -volumeDestination=/tmp
+
+# or using remote Dockerfile
+go run main.go -remoteBuildURI=https://github.com/gofn/dockerfile-python-example.git -imageName="pythonexample"
+
+# you can also send a string that will be written to the stdin of the container
+go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -input "input string"
+
+# or run in digital ocean
+export DIGITALOCEAN_API_KEY="paste your key here"
+go run main.go -contextDir=testDocker -imageName=python -dockerfile=Dockerfile -remoteBuild=true
 ```
 
 You can also compile with _go build_ or build and install with _go install_ command then run it as a native executable.
