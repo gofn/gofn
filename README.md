@@ -26,6 +26,7 @@ go get github.com/nuveo/gofn
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
@@ -76,7 +77,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	}
 
 	defer wait.Done()
-	stdout, stderr, err := gofn.Run(buildOpts, containerOpts)
+	stdout, stderr, err := gofn.Run(context.Background(), buildOpts, containerOpts)
 	if err != nil {
 		log.Println(err)
 	}
