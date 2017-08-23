@@ -28,6 +28,19 @@ var (
 	Port = ":22"
 )
 
+// PublicKeyFile for auth method
+func PublicKeyFile(file string) ssh.AuthMethod {
+	buffer, err := ioutil.ReadFile(file)
+	if err != nil {
+		return nil
+	}
+	key, err := ssh.ParsePrivateKey(buffer)
+	if err != nil {
+		return nil
+	}
+	return ssh.PublicKeys(key)
+}
+
 // WritePEM SSH
 func WritePEM(path string, content []byte, filePermission os.FileMode, dirPermission os.FileMode) (err error) {
 	err = os.MkdirAll(KeysDir, dirPermission)

@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"io/ioutil"
-	"net"
 	"net/url"
 	"os"
 	"path/filepath"
@@ -335,39 +334,6 @@ func (do *Digitalocean) CreateSnapshot(machine *iaas.Machine) (err error) {
 	}
 }
 
-func publicKeyFile(file string) ssh.AuthMethod {
-	buffer, err := ioutil.ReadFile(file)
-	if err != nil {
-		return nil
-	}
-	key, err := ssh.ParsePrivateKey(buffer)
-	if err != nil {
-		return nil
-	}
-	return ssh.PublicKeys(key)
-}
-
-func probeConnection(ip string, maxRetries int) error {
-	counter := 0
-	var (
-		conn net.Conn
-		err  error
-	)
-	for counter < maxRetries {
-		conn, err = net.DialTimeout("tcp", ip+gofnssh.Port, time.Duration(500)*time.Millisecond)
-		if err == nil {
-			return nil
-		}
-		counter++
-		time.Sleep(time.Duration(250) * time.Millisecond)
-	}
-
-	if conn != nil {
-		err = conn.Close()
-	}
-	return err
-}
-
 // ExecCommand on droplet
 func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output []byte, err error) {
 	pkPath := os.Getenv("GOFN_SSH_PRIVATEKEY_PATH")
@@ -380,12 +346,12 @@ func (do *Digitalocean) ExecCommand(machine *iaas.Machine, cmd string) (output [
 		User:            "root",
 		HostKeyCallback: ssh.InsecureIgnoreHostKey(),
 		Auth: []ssh.AuthMethod{
-			publicKeyFile(pkPath),
+			gofnssh.PublicKeyFile(pkPath),
 		},
 		Timeout: time.Duration(10) * time.Second,
 	}
 
-	err = probeConnection(machine.IP, iaas.MediumRetry)
+	err = gofnssh.ProbeConnection(machine.IP, iaas.MediumRetry)
 	if err != nil {
 		return
 	}
