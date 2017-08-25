@@ -255,7 +255,7 @@ func (do *Digitalocean) getSSHKeyForDroplet() (sshKey *godo.Key, err error) {
 		}
 		return
 	}
-	sshFilePath := os.Getenv("GOFN_SSH_PUBLICKEY_PATH")
+	sshFilePath := do.GetSSHPublicKeyPath()
 	if sshFilePath == "" {
 		path := filepath.Join(gofnssh.KeysDir, gofnssh.PublicKeyName)
 		if !existsKey(path) {
