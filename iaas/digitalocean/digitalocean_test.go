@@ -1086,3 +1086,61 @@ func TestCreateSnapshotActionError(t *testing.T) {
 		t.Errorf("expected run with errors but not has")
 	}
 }
+
+func TestGetSSHPublicKeyPath(t *testing.T) {
+	testPath := "teste/path"
+	err := os.Setenv("GOFN_SSH_PUBLICKEY_PATH", testPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	do := &Digitalocean{}
+	path := do.GetSSHPublicKeyPath()
+	if path != testPath {
+		t.Fatalf("expected %v but got %v", testPath, path)
+	}
+	err = os.Setenv("GOFN_SSH_PUBLICKEY_PATH", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	do = &Digitalocean{}
+	do.SetSSHPublicKeyPath(testPath)
+	path = do.GetSSHPublicKeyPath()
+	if path != testPath {
+		t.Fatalf("expected %v but got %v", testPath, path)
+	}
+	do = &Digitalocean{}
+	path = do.GetSSHPublicKeyPath()
+	defaultPath := ".gofn/keys/id_rsa.pub"
+	if path != defaultPath {
+		t.Fatalf("expected %v but got %v", defaultPath, path)
+	}
+}
+
+func TestGetSSHPrivateKeyPath(t *testing.T) {
+	testPath := "teste/path"
+	err := os.Setenv("GOFN_SSH_PRIVATEKEY_PATH", testPath)
+	if err != nil {
+		t.Fatal(err)
+	}
+	do := &Digitalocean{}
+	path := do.GetSSHPrivateKeyPath()
+	if path != testPath {
+		t.Fatalf("expected %v but got %v", testPath, path)
+	}
+	err = os.Setenv("GOFN_SSH_PRIVATEKEY_PATH", "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	do = &Digitalocean{}
+	do.SetSSHPrivateKeyPath(testPath)
+	path = do.GetSSHPrivateKeyPath()
+	if path != testPath {
+		t.Fatalf("expected %v but got %v", testPath, path)
+	}
+	do = &Digitalocean{}
+	path = do.GetSSHPrivateKeyPath()
+	defaultPath := ".gofn/keys/id_rsa"
+	if path != ".gofn/keys/id_rsa" {
+		t.Fatalf("expected %v but got %v", defaultPath, path)
+	}
+}
