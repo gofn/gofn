@@ -144,8 +144,8 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 		log.Errorf("unable to kill container %v\n", container.ID)
 		return
 	}
-	log.Errorf("docker client is %#v\n", client, container)
-	log.Errorf("docker container is %#v\n", client, container)
+	log.Errorf("docker client is %#v\n", client)
+	log.Errorf("docker container is %#v\n", container)
 	return
 }
 
