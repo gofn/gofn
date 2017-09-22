@@ -132,10 +132,6 @@ func FnFindContainerByID(client *docker.Client, ID string) (container docker.API
 	}
 	for _, v := range containers {
 		if v.ID == ID {
-			fmt.Println("ID:", v.ID)
-			fmt.Println("Status:", v.Status)
-			fmt.Println("State:", v.State)
-
 			container = v
 			return
 		}
