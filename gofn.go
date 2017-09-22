@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"io"
+	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
 	"github.com/nuveo/gofn/iaas"
@@ -111,20 +112,40 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 		log.Println("trying to destroy container process done")
 	}
 	if machine != nil {
-		derr := buildOpts.Iaas.DeleteMachine(machine)
-		if derr != nil {
-			log.Errorln(derr)
+		log.Printf("trying to delete machine ID:%v\n", machine.ID)
+		deleteErr := buildOpts.Iaas.DeleteMachine(machine)
+		if deleteErr != nil {
+			log.Errorln("error trying to delete machine ", deleteErr)
 		}
 		return
 	}
 	if client != nil && container != nil {
-		derr := DestroyContainer(context.Background(), client, container)
-		if derr != nil {
-			log.Errorln(derr)
+		for killAttempt := 0; killAttempt < 3; killAttempt++ {
+			if killAttempt > 0 {
+				<-time.After(time.Duration(3) * time.Second)
+			}
+			log.Printf("destroying container ID:%v, attempt:%v\n", container.ID, killAttempt+1)
+			err = client.KillContainer(docker.KillContainerOptions{ID: container.ID})
+			if err != nil {
+				log.Errorln("error trying to kill container ", err)
+			}
+			err = client.RemoveContainer(docker.RemoveContainerOptions{ID: container.ID})
+			if err != nil {
+				log.Errorln("error trying to remove container ", err)
+			}
+			_, err = provision.FnFindContainerByID(client, container.ID)
+			if err != nil {
+				if err == provision.ErrContainerNotFound {
+					err = nil
+				}
+				return
+			}
 		}
+		log.Errorf("unable to kill container %v\n", container.ID)
 		return
 	}
-	log.Errorln("docker client and container is nil")
+	log.Errorf("docker client is %#v\n", client)
+	log.Errorf("docker container is %#v\n", container)
 	return
 }
 
