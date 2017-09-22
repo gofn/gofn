@@ -123,6 +123,27 @@ func FnFindImage(client *docker.Client, imageName string) (image docker.APIImage
 	return
 }
 
+// FnFindContainerByID return container by ID
+func FnFindContainerByID(client *docker.Client, ID string) (container docker.APIContainers, err error) {
+	var containers []docker.APIContainers
+	containers, err = client.ListContainers(docker.ListContainersOptions{All: true})
+	if err != nil {
+		return
+	}
+	for _, v := range containers {
+		if v.ID == ID {
+			fmt.Println("ID:", v.ID)
+			fmt.Println("Status:", v.Status)
+			fmt.Println("State:", v.State)
+
+			container = v
+			return
+		}
+	}
+	err = ErrContainerNotFound
+	return
+}
+
 // FnFindContainer return container by image name
 func FnFindContainer(client *docker.Client, imageName string) (container docker.APIContainers, err error) {
 	var containers []docker.APIContainers

@@ -290,6 +290,44 @@ func TestFnFindContainerSuccessfully(t *testing.T) {
 	}
 }
 
+func TestFnFindContainerByIDContainerNotFound(t *testing.T) {
+	server := createFakeDockerAPI(t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+
+	// Find a container by image
+	if _, e := FnFindContainerByID(client, "python"); e != ErrContainerNotFound {
+		t.Errorf("Expected %q but found %q", ErrContainerNotFound, e)
+	}
+}
+
+func TestFnFindContainerByIDServerError(t *testing.T) {
+	client := NewTestClient("wrong", t)
+
+	_, err := FnFindContainerByID(client, "wrong")
+	if err == nil || err == ErrContainerNotFound {
+		t.Errorf("Expected other errors but found COntainerNotfound or null: %q", err)
+	}
+}
+
+func TestFnFindContainerByIDSuccessfully(t *testing.T) {
+	server := createFakeDockerAPI(t)
+	defer server.Stop()
+
+	// Instantiate a client
+	client := NewTestClient(server.URL(), t)
+
+	// Create container before find it
+	container := createFakeContainer(client, t)
+
+	// Find a container by image
+	if _, e := FnFindContainerByID(client, container.ID); e != nil {
+		t.Errorf("Expected no errors but %q found", e)
+	}
+}
+
 func TestFnFindContainerContainerNotFound(t *testing.T) {
 	server := createFakeDockerAPI(t)
 	defer server.Stop()
