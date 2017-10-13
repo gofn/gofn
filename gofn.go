@@ -124,21 +124,24 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 			if killAttempt > 0 {
 				<-time.After(time.Duration(3) * time.Second)
 			}
-			log.Printf("destroying container ID:%v, attempt:%v\n", container.ID, killAttempt+1)
-			err = client.KillContainer(docker.KillContainerOptions{ID: container.ID})
-			if err != nil {
-				log.Errorln("error trying to kill container ", err)
-			}
-			err = client.RemoveContainer(docker.RemoveContainerOptions{ID: container.ID})
-			if err != nil {
-				log.Errorln("error trying to remove container ", err)
-			}
 			_, err = provision.FnFindContainerByID(client, container.ID)
 			if err != nil {
 				if err == provision.ErrContainerNotFound {
 					err = nil
 				}
 				return
+			}
+
+			if container.State.Running {
+				log.Printf("destroying container ID:%v, attempt:%v\n", container.ID, killAttempt+1)
+				err = client.KillContainer(docker.KillContainerOptions{ID: container.ID})
+				if err != nil {
+					log.Errorln("error trying to kill container ", err)
+				}
+			}
+			err = client.RemoveContainer(docker.RemoveContainerOptions{ID: container.ID})
+			if err != nil {
+				log.Errorln("error trying to remove container ", err)
 			}
 		}
 		log.Errorf("unable to kill container %v\n", container.ID)
