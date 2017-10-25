@@ -131,24 +131,25 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 				}
 				return
 			}
-
 			if container.State.Running {
 				log.Printf("destroying container ID:%v, attempt:%v\n", container.ID, killAttempt+1)
 				err = client.KillContainer(docker.KillContainerOptions{ID: container.ID})
 				if err != nil {
-					log.Errorln("error trying to kill container ", err)
+					log.Errorf("error trying to kill container %v, %v, attempt:%v\n", container.ID, err.Error(), killAttempt+1)
 				}
 			}
-			err = client.RemoveContainer(docker.RemoveContainerOptions{ID: container.ID})
+			err = client.RemoveContainer(docker.RemoveContainerOptions{
+				ID:    container.ID,
+				Force: true,
+			})
 			if err != nil {
-				log.Errorln("error trying to remove container ", err)
+				log.Errorf("error trying to remove container %v, %v, attempt:%v\n", container.ID, err.Error(), killAttempt+1)
 			}
 		}
 		log.Errorf("unable to kill container %v\n", container.ID)
 		return
 	}
-	log.Errorf("docker client is %#v\n", client)
-	log.Errorf("docker container is %#v\n", container)
+	log.Errorf("docker client or container is nil")
 	return
 }
 
