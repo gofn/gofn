@@ -169,7 +169,7 @@ func TestFnContainerCreatedWithEnvVars(t *testing.T) {
 	if !strings.HasPrefix(container.Name, "gofn") {
 		t.Errorf("container should starts with gofn but found %q", container.Name)
 	}
-	// enviroment variable is set in container
+	// environment variable is set in container
 	if container.Config.Env[0] != env {
 		t.Errorf("expected  %q bout found %q", env, container.Config.Env[0])
 	}

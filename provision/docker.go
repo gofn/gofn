@@ -208,7 +208,7 @@ func FnRun(client *docker.Client, containerID, input string) (Stdout *bytes.Buff
 	stdout := new(bytes.Buffer)
 	stderr := new(bytes.Buffer)
 
-	// omit logs beacuse execution error is more important
+	// omit logs because execution error is more important
 	_ = FnLogs(client, containerID, stdout, stderr)
 
 	Stdout = stdout
