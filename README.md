@@ -1,10 +1,10 @@
 ![gofn](docs/assets/logo.png)
 
-[![Build Status](https://travis-ci.org/nuveo/gofn.svg?branch=master)](https://travis-ci.org/nuveo/gofn)
-[![GoDoc](https://godoc.org/github.com/nuveo/gofn?status.png)](https://godoc.org/github.com/nuveo/gofn)
-[![Go Report Card](https://goreportcard.com/badge/github.com/nuveo/gofn)](https://goreportcard.com/report/github.com/nuveo/gofn)
-[![codecov](https://codecov.io/gh/nuveo/gofn/branch/master/graph/badge.svg)](https://codecov.io/gh/nuveo/gofn)
-[![Join the chat at https://gitter.im/nuveo/gofn](https://badges.gitter.im/nuveo/gofn.svg)](https://gitter.im/nuveo/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Build Status](https://travis-ci.org/gofn/gofn.svg?branch=master)](https://travis-ci.org/gofn/gofn)
+[![GoDoc](https://godoc.org/github.com/gofn/gofn?status.png)](https://godoc.org/github.com/gofn/gofn)
+[![Go Report Card](https://goreportcard.com/badge/github.com/gofn/gofn)](https://goreportcard.com/report/github.com/gofn/gofn)
+[![codecov](https://codecov.io/gh/gofn/gofn/branch/master/graph/badge.svg)](https://codecov.io/gh/gofn/gofn)
+[![Join the chat at https://gitter.im/gofn/gofn](https://badges.gitter.im/gofn/gofn.svg)](https://gitter.im/gofn/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Function process via container provider
 
@@ -17,7 +17,7 @@ Function process via container provider
 ## Install
 
 ```bash
-go get github.com/nuveo/gofn
+go get github.com/gofn/gofn
 ```
 
 ## Example
@@ -33,9 +33,9 @@ import (
 	"runtime"
 	"sync"
 
-	"github.com/nuveo/gofn"
-	"github.com/nuveo/gofn/iaas/digitalocean"
-	"github.com/nuveo/gofn/provision"
+	"github.com/gofn/gofn"
+	"github.com/gofn/gofn/iaas/digitalocean"
+	"github.com/gofn/gofn/provision"
 )
 
 func main() {
