@@ -1,10 +1,10 @@
 ![gofn](docs/assets/logo.png)
 
-[![Build Status](https://travis-ci.org/nuveo/gofn.svg?branch=master)](https://travis-ci.org/nuveo/gofn)
+[![Build Status](https://travis-ci.org/gofn/gofn.svg?branch=master)](https://travis-ci.org/gofn/gofn)
 [![GoDoc](https://godoc.org/github.com/gofn/gofn?status.png)](https://godoc.org/github.com/gofn/gofn)
 [![Go Report Card](https://goreportcard.com/badge/github.com/gofn/gofn)](https://goreportcard.com/report/github.com/gofn/gofn)
-[![codecov](https://codecov.io/gh/nuveo/gofn/branch/master/graph/badge.svg)](https://codecov.io/gh/nuveo/gofn)
-[![Join the chat at https://gitter.im/nuveo/gofn](https://badges.gitter.im/nuveo/gofn.svg)](https://gitter.im/nuveo/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![codecov](https://codecov.io/gh/gofn/gofn/branch/master/graph/badge.svg)](https://codecov.io/gh/gofn/gofn)
+[![Join the chat at https://gitter.im/gofn/gofn](https://badges.gitter.im/gofn/gofn.svg)](https://gitter.im/gofn/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 Function process via container provider
 
