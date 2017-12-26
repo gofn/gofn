@@ -7,8 +7,8 @@ import (
 	"time"
 
 	docker "github.com/fsouza/go-dockerclient"
-	"github.com/nuveo/gofn/iaas"
-	"github.com/nuveo/gofn/provision"
+	"github.com/gofn/gofn/iaas"
+	"github.com/gofn/gofn/provision"
 	"github.com/nuveo/log"
 )
 

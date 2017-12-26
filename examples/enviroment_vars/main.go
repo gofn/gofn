@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"log"
 
-	"github.com/nuveo/gofn"
-	"github.com/nuveo/gofn/provision"
+	"github.com/gofn/gofn"
+	"github.com/gofn/gofn/provision"
 )
 
 func main() {

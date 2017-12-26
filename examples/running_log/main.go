@@ -5,9 +5,9 @@ import (
 	"log"
 	"os"
 
-	"github.com/nuveo/gofn"
-	"github.com/nuveo/gofn/iaas/digitalocean"
-	"github.com/nuveo/gofn/provision"
+	"github.com/gofn/gofn"
+	"github.com/gofn/gofn/iaas/digitalocean"
+	"github.com/gofn/gofn/provision"
 )
 
 func main() {

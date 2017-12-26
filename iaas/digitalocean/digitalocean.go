@@ -13,8 +13,8 @@ import (
 	"context"
 
 	"github.com/digitalocean/godo"
-	"github.com/nuveo/gofn/iaas"
-	gofnssh "github.com/nuveo/gofn/ssh"
+	"github.com/gofn/gofn/iaas"
+	gofnssh "github.com/gofn/gofn/ssh"
 	"github.com/nuveo/log"
 	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/ssh"

@@ -11,7 +11,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/nuveo/gofn/iaas"
+	"github.com/gofn/gofn/iaas"
 )
 
 var (
