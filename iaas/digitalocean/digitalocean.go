@@ -196,8 +196,13 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
+	var uid uuid.UUID
+	uid, err = uuid.NewV4()
+	if err != nil {
+		return
+	}
 	createRequest := &godo.DropletCreateRequest{
-		Name:   fmt.Sprintf("gofn-%s", uuid.NewV4().String()),
+		Name:   fmt.Sprintf("gofn-%s", uid.String()),
 		Region: do.GetRegion(),
 		Size:   do.GetSize(),
 		Image:  image,

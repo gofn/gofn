@@ -78,8 +78,13 @@ func FnContainer(client *docker.Client, opts ContainerOptions) (container *docke
 		StdinOnce: true,
 		OpenStdin: true,
 	}
+	var uid uuid.UUID
+	uid, err = uuid.NewV4()
+	if err != nil {
+		return
+	}
 	container, err = client.CreateContainer(docker.CreateContainerOptions{
-		Name:       fmt.Sprintf("gofn-%s", uuid.NewV4().String()),
+		Name:       fmt.Sprintf("gofn-%s", uid.String()),
 		HostConfig: &docker.HostConfig{Binds: opts.Volumes},
 		Config:     config,
 	})
