@@ -5,6 +5,7 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/gofn/gofn)](https://goreportcard.com/report/github.com/gofn/gofn)
 [![codecov](https://codecov.io/gh/gofn/gofn/branch/master/graph/badge.svg)](https://codecov.io/gh/gofn/gofn)
 [![Join the chat at https://gitter.im/gofn/gofn](https://badges.gitter.im/gofn/gofn.svg)](https://gitter.im/gofn/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
+[![Open Source Helpers](https://www.codetriage.com/nuveo/gofn/badges/users.svg)](https://www.codetriage.com/nuveo/gofn)
 
 Function process via container provider
 
