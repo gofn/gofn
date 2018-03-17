@@ -7,13 +7,7 @@
 [![Join the chat at https://gitter.im/gofn/gofn](https://badges.gitter.im/gofn/gofn.svg)](https://gitter.im/gofn/gofn?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 [![Open Source Helpers](https://www.codetriage.com/nuveo/gofn/badges/users.svg)](https://www.codetriage.com/nuveo/gofn)
 
-Function process via container provider
-
-## Premise
-
-- Software makes a task
-- After processing it dies
-- Must put on stdout (print)
+Function process via docker provider
 
 ## Install
 
