@@ -247,3 +247,23 @@ func FnWaitContainer(client *docker.Client, containerID string) chan error {
 	}()
 	return errs
 }
+
+// FnListContainers lists all the containers created by the gofn.
+// It returns the APIContainers from the API, but have to be formatted for pretty printing
+func FnListContainers(client *docker.Client) (containers []docker.APIContainers, err error) {
+	hostContainers, err := client.ListContainers(docker.ListContainersOptions{
+		All: true,
+	})
+
+	if err != nil {
+		containers = nil
+		return
+	}
+
+	for _, container := range hostContainers {
+		if strings.HasPrefix(container.Image, "gofn/") {
+			containers = append(containers, container)
+		}
+	}
+	return
+}
