@@ -303,6 +303,35 @@ func TestFnFindContainerByIDContainerNotFound(t *testing.T) {
 	}
 }
 
+func TestFnListContainers(t *testing.T) {
+	// Create a new server
+	server := createFakeDockerAPI(t)
+	defer server.Stop()
+
+	// Instanciate the client
+	client := NewTestClient(server.URL(), t)
+
+	imageName := createFakeImage(client)
+
+	container, err := FnContainer(client, ContainerOptions{Image: imageName})
+
+	if err != nil {
+		t.Fatalf("Expect to create an container but failed because %s", err)
+	}
+
+	runFakeContainer(client, container.ID, t)
+
+	containersList, err := FnListContainers(client)
+
+	if err != nil {
+		t.Fatalf("Error testing FnListContainers, error: %s", err)
+	}
+
+	if len(containersList) == 0 {
+		t.Fatal("Expected FnListContainers to have more than zero listed.")
+	}
+}
+
 func TestFnFindContainerByIDServerError(t *testing.T) {
 	client := NewTestClient("wrong", t)
 
