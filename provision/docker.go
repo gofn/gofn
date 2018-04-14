@@ -254,12 +254,10 @@ func FnListContainers(client *docker.Client) (containers []docker.APIContainers,
 	hostContainers, err := client.ListContainers(docker.ListContainersOptions{
 		All: true,
 	})
-
 	if err != nil {
 		containers = nil
 		return
 	}
-
 	for _, container := range hostContainers {
 		if strings.HasPrefix(container.Image, "gofn/") {
 			containers = append(containers, container)
