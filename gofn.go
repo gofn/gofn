@@ -12,7 +12,7 @@ import (
 	"github.com/nuveo/log"
 )
 
-const dockerPort = ":2375"
+const dockerPort = ":2376"
 
 // ProvideMachine provisioning a machine in the cloud
 func ProvideMachine(ctx context.Context, service iaas.Iaas) (client *docker.Client, machine *iaas.Machine, err error) {

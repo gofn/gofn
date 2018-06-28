@@ -59,7 +59,7 @@ func FnClient(endPoint string) (client *docker.Client, err error) {
 		endPoint = "unix:///var/run/docker.sock"
 	}
 
-	client, err = docker.NewClient(endPoint)
+	client, err = docker.NewTLSClient(endPoint, "cert.pem", "key.pem", "ca.pem")
 	return
 }
 
