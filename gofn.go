@@ -26,7 +26,7 @@ func ProvideMachine(ctx context.Context, service iaas.Iaas) (client *docker.Clie
 		}
 		return
 	}
-	client, err = provision.FnClient(machine.IP + dockerPort)
+	client, err = provision.FnClient(machine.IP+dockerPort, machine.CertsDir)
 	return
 }
 
@@ -77,7 +77,7 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 	var machine *iaas.Machine
 	done := make(chan struct{})
 	go func(ctx context.Context, done chan struct{}) {
-		client, err = provision.FnClient("")
+		client, err = provision.FnClient("", "")
 		if err != nil {
 			done <- struct{}{}
 			return

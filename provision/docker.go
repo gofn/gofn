@@ -54,12 +54,12 @@ func (opts BuildOptions) GetImageName() string {
 }
 
 // FnClient instantiate a docker client
-func FnClient(endPoint string) (client *docker.Client, err error) {
+func FnClient(endPoint, certsDir string) (client *docker.Client, err error) {
 	if endPoint == "" {
 		endPoint = "unix:///var/run/docker.sock"
 	}
 
-	client, err = docker.NewTLSClient(endPoint, "cert.pem", "key.pem", "ca.pem")
+	client, err = docker.NewTLSClient(endPoint, certsDir+"/cert.pem", certsDir+"/key.pem", certsDir+"/ca.pem")
 	return
 }
 
