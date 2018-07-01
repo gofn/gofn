@@ -302,7 +302,7 @@ func (do *Digitalocean) DeleteMachine(machine *iaas.Machine) (err error) {
 	}
 	action, _, err := do.client.DropletActions.Shutdown(do.Ctx, id)
 	if err != nil {
-		log.Println(err)
+		log.Errorln(err)
 		// Power off force Shutdown
 		action, _, err = do.client.DropletActions.PowerOff(do.Ctx, id)
 		if err != nil {
