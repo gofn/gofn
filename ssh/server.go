@@ -160,7 +160,7 @@ func (s *FakeServer) handleChannel(newChannel ssh.NewChannel) {
 	ch, requests, err := newChannel.Accept()
 	if err != nil {
 		s.Stop()
-		log.Printf("Could not accept channel (%s)", err)
+		log.Errorf("Could not accept channel (%s)", err)
 		return
 	}
 	go func(in <-chan *ssh.Request) {
