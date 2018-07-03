@@ -13,8 +13,6 @@ const (
 type Iaas interface {
 	CreateMachine() (*Machine, error)
 	DeleteMachine(machine *Machine) error
-	SetSSHPublicKeyPath(string)
-	SetSSHPrivateKeyPath(string)
 	ExecCommand(machine *Machine, cmd string) ([]byte, error)
 }
 

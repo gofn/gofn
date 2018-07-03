@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"path/filepath"
 	"strconv"
 
 	"context"
@@ -15,7 +14,6 @@ import (
 	"github.com/docker/machine/libmachine"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/gofn/gofn/iaas"
-	gofnssh "github.com/gofn/gofn/ssh"
 	uuid "github.com/satori/go.uuid"
 )
 
@@ -46,56 +44,6 @@ type driverConfig struct {
 		Image       string `json:"Image"`
 		SSHKeyID    int    `json:"SSHKeyID"`
 	} `json:"Driver"`
-}
-
-// SetSSHPublicKeyPath adjust the system path for the ssh key
-// but if the environment variable GOFN_SSH_PUBLICKEY_PATH exists
-// the system will use the value contained in the variable instead
-// of the one entered in SetSSHPublicKeyPath
-func (do *Digitalocean) SetSSHPublicKeyPath(path string) {
-	do.sshPublicKeyPath = path
-}
-
-// SetSSHPrivateKeyPath adjust the system path for the ssh key
-// but if the environment variable GOFM_SSH_PRIVATEKEY_PATH exists
-// the system will use the value contained in the variable instead
-// of the one entered in SetSSHPrivateKeyPath
-func (do *Digitalocean) SetSSHPrivateKeyPath(path string) {
-	do.sshPrivateKeyPath = path
-}
-
-// GetSSHPublicKeyPath the path may change according to the
-// environment variable GOFN_SSH_PUBLICKEY_PATH or by using
-// the SetSSHPublicKeyPath
-func (do *Digitalocean) GetSSHPublicKeyPath() (path string) {
-	path = os.Getenv("GOFN_SSH_PUBLICKEY_PATH")
-	if path != "" {
-		return
-	}
-	path = do.sshPublicKeyPath
-	if path != "" {
-		return
-	}
-	do.sshPublicKeyPath = filepath.Join(gofnssh.KeysDir, gofnssh.PublicKeyName)
-	path = do.sshPublicKeyPath
-	return
-}
-
-// GetSSHPrivateKeyPath the path may change according to the
-// environment variable GOFM_SSH_PRIVATEKEY_PATH or by using
-// the SetSSHPrivateKeyPath
-func (do *Digitalocean) GetSSHPrivateKeyPath() (path string) {
-	path = os.Getenv("GOFN_SSH_PRIVATEKEY_PATH")
-	if path != "" {
-		return
-	}
-	path = do.sshPrivateKeyPath
-	if path != "" {
-		return
-	}
-	do.sshPrivateKeyPath = filepath.Join(gofnssh.KeysDir, gofnssh.PrivateKeyName)
-	path = do.sshPrivateKeyPath
-	return
 }
 
 // GetRegion returns region or default if empty
