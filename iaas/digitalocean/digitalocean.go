@@ -25,8 +25,10 @@ const (
 
 // Digitalocean definition, represents a concrete implementation of an iaas
 type Digitalocean struct {
-	Client            *libmachine.Client
+	Client            libmachine.API
 	Host              *host.Host
+	Name              string
+	ClientPath        string
 	Region            string
 	Size              string
 	ImageSlug         string
@@ -83,19 +85,28 @@ func getConfig(machineDir, hostName string) (config *driverConfig, err error) {
 	return
 }
 
-// CreateMachine on digitalocean
-func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
+func New() (do *Digitalocean, err error) {
 	var uid uuid.UUID
 	uid, err = uuid.NewV4()
 	if err != nil {
 		return
 	}
 
-	clientPath := fmt.Sprintf("/tmp/gofn-%s", uid.String())
-	do.Client = libmachine.NewClient(clientPath, clientPath+"/certs")
+	name := fmt.Sprintf("gofn-%s", uid.String())
+	clientPath := "/tmp/" + name
+	c := libmachine.NewClient(clientPath, clientPath+"/certs")
 
-	hostName := fmt.Sprintf("gofn-%s", uid.String())
-	driver := digitalocean.NewDriver(hostName, clientPath)
+	do = &Digitalocean{
+		Client:     c,
+		Name:       name,
+		ClientPath: clientPath,
+	}
+	return
+}
+
+// CreateMachine on digitalocean
+func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
+	driver := digitalocean.NewDriver(do.Name, do.ClientPath)
 	key := os.Getenv("DIGITALOCEAN_API_KEY")
 	if key == "" {
 		err = errors.New("You must provide a Digital Ocean API Key")
@@ -120,7 +131,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
-	config, err := getConfig(do.Client.Filestore.GetMachinesDir(), hostName)
+	config, err := getConfig(do.Client.GetMachinesDir(), do.Name)
 	if err != nil {
 		return
 	}
@@ -132,7 +143,7 @@ func (do *Digitalocean) CreateMachine() (machine *iaas.Machine, err error) {
 		Kind:      "digitalocean",
 		Name:      config.Driver.DropletName,
 		SSHKeysID: []int{config.Driver.SSHKeyID},
-		CertsDir:  clientPath + "/certs",
+		CertsDir:  do.ClientPath + "/certs",
 	}
 	return
 }
