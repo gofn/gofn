@@ -1,0 +1,14 @@
+{
+    "Driver": {
+        "IPAddress": "111.222.333.444",
+        "MachineName": "gofn-016a970f-74b3-4e3d-acfa-839a82f34385",
+        "DropletID": 100293178,
+        "DropletName": "",
+        "Image": "ubuntu-16-04-x64",
+        "Region": "nyc3",
+        "SSHKeyID": 21927446,
+        "Size": "1gb"
+    },
+    "DriverName": "digitalocean",
+    "Name": "gofn-016a970f-74b3-4e3d-acfa-839a82f34385"
+}
