@@ -11,10 +11,16 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-	iaas := &digitalocean.Digitalocean{
-		Ctx: ctx,
+	key := os.Getenv("DIGITALOCEAN_API_KEY")
+	if key == "" {
+		log.Println("You must provide an api key for digital ocean")
 	}
+	iaas, err := digitalocean.New(key)
+	if err != nil {
+		log.Println(err)
+	}
+
+	ctx := context.Background()
 	client, machine, err := gofn.ProvideMachine(ctx, iaas)
 	if err != nil {
 		log.Fatal(err)

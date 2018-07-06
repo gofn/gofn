@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	"log"
+	"os"
 
 	"sync"
 
@@ -49,9 +50,16 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 		containerOpts.Volumes = []string{fmt.Sprintf("%s:%s", volumeSource, volumeDestination)}
 	}
 	if remote {
-		buildOpts.Iaas = &digitalocean.Digitalocean{
-			Ctx: context.Background(),
+		key := os.Getenv("DIGITALOCEAN_API_KEY")
+		if key == "" {
+			log.Println("You must provide an api key for digital ocean")
 		}
+		do, err := digitalocean.New(key)
+		if err != nil {
+			log.Println(err)
+		}
+		buildOpts.Iaas = do
+
 	}
 	go func() {
 		defer wait.Done()
