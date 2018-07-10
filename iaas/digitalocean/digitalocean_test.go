@@ -10,7 +10,6 @@ import (
 	"github.com/docker/machine/libmachine"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/docker/machine/libmachine/libmachinetest"
-	"github.com/gofn/gofn/iaas"
 )
 
 func Test_getConfig(t *testing.T) {

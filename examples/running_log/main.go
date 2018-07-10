@@ -21,7 +21,7 @@ func main() {
 	}
 
 	ctx := context.Background()
-	client, machine, err := gofn.ProvideMachine(ctx, iaas)
+	client, _, err := gofn.ProvideMachine(ctx, iaas)
 	if err != nil {
 		log.Fatal(err)
 	}
