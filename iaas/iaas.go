@@ -1,19 +1,9 @@
 package iaas
 
-const (
-	// SmallRetry is the smallest observed value to retry the connection with the remote machine
-	SmallRetry = 120
-	// MediumRetry represents average value to retry the connection with the remote machine
-	MediumRetry = 480
-	// BigRetry is the biggest observed value to retry the connection with the remote machine
-	BigRetry = 960
-)
-
 // Iaas represents a infresture service
 type Iaas interface {
 	CreateMachine() (*Machine, error)
 	DeleteMachine() error
-	ExecCommand(cmd string) ([]byte, error)
 }
 
 // Machine defines a generic machine

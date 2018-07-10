@@ -116,13 +116,3 @@ func (do *provider) DeleteMachine() (err error) {
 	}
 	return
 }
-
-// ExecCommand on droplet
-func (do *provider) ExecCommand(cmd string) (output []byte, err error) {
-	out, err := do.Host.RunSSHCommand(cmd)
-	if err != nil {
-		return
-	}
-	output = []byte(out)
-	return
-}

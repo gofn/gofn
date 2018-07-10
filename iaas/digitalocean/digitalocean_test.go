@@ -170,17 +170,3 @@ func TestDeleteMachine(t *testing.T) {
 		t.Fatal(err)
 	}
 }
-
-func TestExecCommand(t *testing.T) {
-	// // success
-	// p := provider{
-	// 	Client: &libmachinetest.FakeAPI{},
-	// }
-	// driver := &fakedriver.Driver{}
-	// p.Host = &host.Host{}
-	// p.Host.Driver = driver
-	// _, err := p.ExecCommand("yes")
-	// if err != nil {
-	// 	t.Fatal(err)
-	// }
-}
