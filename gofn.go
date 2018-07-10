@@ -19,7 +19,7 @@ func ProvideMachine(ctx context.Context, service iaas.Iaas) (client *docker.Clie
 	machine, err = service.CreateMachine()
 	if err != nil {
 		if machine != nil {
-			cerr := service.DeleteMachine(machine)
+			cerr := service.DeleteMachine()
 			if cerr != nil {
 				log.Errorln(cerr)
 			}
@@ -113,7 +113,7 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 	}
 	if machine != nil {
 		log.Printf("trying to delete machine ID:%v\n", machine.ID)
-		deleteErr := buildOpts.Iaas.DeleteMachine(machine)
+		deleteErr := buildOpts.Iaas.DeleteMachine()
 		if deleteErr != nil {
 			log.Errorln("error trying to delete machine ", deleteErr)
 		}

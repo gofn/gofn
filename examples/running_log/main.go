@@ -25,7 +25,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer iaas.DeleteMachine(machine)
+	defer iaas.DeleteMachine()
 	container, err := gofn.PrepareContainer(ctx, client, &provision.BuildOptions{
 		ContextDir: "testDocker",
 		Dockerfile: "Dockerfile",

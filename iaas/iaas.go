@@ -12,8 +12,8 @@ const (
 // Iaas represents a infresture service
 type Iaas interface {
 	CreateMachine() (*Machine, error)
-	DeleteMachine(machine *Machine) error
-	ExecCommand(machine *Machine, cmd string) ([]byte, error)
+	DeleteMachine() error
+	ExecCommand(cmd string) ([]byte, error)
 }
 
 // Machine defines a generic machine

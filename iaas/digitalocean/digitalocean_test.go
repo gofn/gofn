@@ -145,7 +145,7 @@ func TestDeleteMachine(t *testing.T) {
 	driver := &fakedriver.Driver{}
 	p.Host = &host.Host{}
 	p.Host.Driver = driver
-	err := p.DeleteMachine(&iaas.Machine{})
+	err := p.DeleteMachine()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -155,7 +155,7 @@ func TestDeleteMachine(t *testing.T) {
 	}
 	p.Host = &host.Host{}
 	p.Host.Driver = driver
-	err = p.DeleteMachine(&iaas.Machine{})
+	err = p.DeleteMachine()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -166,7 +166,7 @@ func TestDeleteMachine(t *testing.T) {
 	driver2 := &removeDriver{}
 	p.Host = &host.Host{}
 	p.Host.Driver = driver2
-	err = p.DeleteMachine(&iaas.Machine{})
+	err = p.DeleteMachine()
 	if err == nil {
 		t.Fatal(err)
 	}
@@ -180,7 +180,7 @@ func TestExecCommand(t *testing.T) {
 	// driver := &fakedriver.Driver{}
 	// p.Host = &host.Host{}
 	// p.Host.Driver = driver
-	// _, err := p.ExecCommand(&iaas.Machine{}, "yes")
+	// _, err := p.ExecCommand("yes")
 	// if err != nil {
 	// 	t.Fatal(err)
 	// }

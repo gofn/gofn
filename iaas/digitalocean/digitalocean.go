@@ -108,7 +108,7 @@ func (do *provider) CreateMachine() (machine *iaas.Machine, err error) {
 }
 
 // DeleteMachine Shutdown and Delete a droplet
-func (do *provider) DeleteMachine(machine *iaas.Machine) (err error) {
+func (do *provider) DeleteMachine() (err error) {
 	err = do.Host.Driver.Remove()
 	defer do.Client.Close()
 	if err != nil {
@@ -118,7 +118,7 @@ func (do *provider) DeleteMachine(machine *iaas.Machine) (err error) {
 }
 
 // ExecCommand on droplet
-func (do *provider) ExecCommand(machine *iaas.Machine, cmd string) (output []byte, err error) {
+func (do *provider) ExecCommand(cmd string) (output []byte, err error) {
 	out, err := do.Host.RunSSHCommand(cmd)
 	if err != nil {
 		return
