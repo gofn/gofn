@@ -1,4 +1,4 @@
-sudo: required
+sudo: false
 
 language: go
 
@@ -20,6 +20,7 @@ matrix:
 before_install:
   - go get -t ./...
   - eval "$(ssh-agent -s)"
+  - go get github.com/docker/machine/cmd/docker-machine
 
 script:
   - make coverage
