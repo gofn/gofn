@@ -13,21 +13,21 @@ import (
 	"github.com/nuveo/log"
 )
 
-const dockerPort = ":2375"
+const dockerPort = ":2376"
 
 // ProvideMachine provisioning a machine in the cloud
 func ProvideMachine(ctx context.Context, service iaas.Iaas) (client *docker.Client, machine *iaas.Machine, err error) {
 	machine, err = service.CreateMachine()
 	if err != nil {
 		if machine != nil {
-			cerr := service.DeleteMachine(machine)
+			cerr := service.DeleteMachine()
 			if cerr != nil {
 				log.Errorln(cerr)
 			}
 		}
 		return
 	}
-	client, err = provision.FnClient(machine.IP + dockerPort)
+	client, err = provision.FnClient(machine.IP+dockerPort, machine.CertsDir)
 	return
 }
 
@@ -78,7 +78,7 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 	var machine *iaas.Machine
 	done := make(chan struct{})
 	go func(ctx context.Context, done chan struct{}) {
-		client, err = provision.FnClient("")
+		client, err = provision.FnClient("", "")
 		if err != nil {
 			done <- struct{}{}
 			return
@@ -114,7 +114,7 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 	}
 	if machine != nil {
 		log.Debugf("trying to delete machine ID:%v\n", machine.ID)
-		deleteErr := buildOpts.Iaas.DeleteMachine(machine)
+		deleteErr := buildOpts.Iaas.DeleteMachine()
 		if deleteErr != nil {
 			err = fmt.Errorf("error trying to delete machine %v", deleteErr)
 		}

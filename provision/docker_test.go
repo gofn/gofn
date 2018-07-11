@@ -9,7 +9,7 @@ import (
 )
 
 func TestFnClientWrongClient(t *testing.T) {
-	_, err := FnClient("http://localhost:a")
+	_, err := FnClient("http://localhost:a", "")
 	if err == nil {
 		t.Fatal("expected error but no errors found")
 	}

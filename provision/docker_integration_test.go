@@ -8,7 +8,7 @@ func TestFnClient(t *testing.T) {
 	}
 
 	// connect from local socket
-	client, err := FnClient("unix:///var/run/docker.sock")
+	client, err := FnClient("unix:///var/run/docker.sock", "")
 	if err != nil {
 		t.Errorf("FnClient with URI: expected nil but returned %q", err)
 	}
@@ -19,7 +19,7 @@ func TestFnClient(t *testing.T) {
 	}
 
 	// Empty string also connect local socket
-	client, err = FnClient("")
+	client, err = FnClient("", "")
 	if err != nil {
 		t.Errorf("FnClient: expected nil but returned %q", err)
 	}

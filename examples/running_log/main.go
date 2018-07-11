@@ -11,15 +11,21 @@ import (
 )
 
 func main() {
-	ctx := context.Background()
-	iaas := &digitalocean.Digitalocean{
-		Ctx: ctx,
+	key := os.Getenv("DIGITALOCEAN_API_KEY")
+	if key == "" {
+		log.Fatalln("You must provide an api key for digital ocean")
 	}
-	client, machine, err := gofn.ProvideMachine(ctx, iaas)
+	iaas, err := digitalocean.New(key)
+	if err != nil {
+		log.Println(err)
+	}
+
+	ctx := context.Background()
+	client, _, err := gofn.ProvideMachine(ctx, iaas)
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer iaas.DeleteMachine(machine)
+	defer iaas.DeleteMachine()
 	container, err := gofn.PrepareContainer(ctx, client, &provision.BuildOptions{
 		ContextDir: "testDocker",
 		Dockerfile: "Dockerfile",
