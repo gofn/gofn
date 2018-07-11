@@ -3,6 +3,7 @@ package gofn
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"io"
 	"time"
 
@@ -107,15 +108,15 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 	}(ctx, done)
 	select {
 	case <-ctx.Done():
-		log.Printf("trying to destroy container %v\n", ctx.Err())
+		log.Errorf("trying to destroy container %v\n", ctx.Err())
 	case <-done:
-		log.Println("trying to destroy container process done")
+		log.Debugln("trying to destroy container process done")
 	}
 	if machine != nil {
-		log.Printf("trying to delete machine ID:%v\n", machine.ID)
+		log.Debugf("trying to delete machine ID:%v\n", machine.ID)
 		deleteErr := buildOpts.Iaas.DeleteMachine()
 		if deleteErr != nil {
-			log.Errorln("error trying to delete machine ", deleteErr)
+			err = fmt.Errorf("error trying to delete machine %v", deleteErr)
 		}
 		return
 	}
@@ -132,7 +133,7 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 				return
 			}
 			if container.State.Running {
-				log.Printf("destroying container ID:%v, attempt:%v\n", container.ID, killAttempt+1)
+				log.Debugf("destroying container ID:%v, attempt:%v\n", container.ID, killAttempt+1)
 				err = client.KillContainer(docker.KillContainerOptions{ID: container.ID})
 				if err != nil {
 					log.Errorf("error trying to kill container %v, %v, attempt:%v\n", container.ID, err.Error(), killAttempt+1)
@@ -146,10 +147,10 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 				log.Errorf("error trying to remove container %v, %v, attempt:%v\n", container.ID, err.Error(), killAttempt+1)
 			}
 		}
-		log.Errorf("unable to kill container %v\n", container.ID)
+		err = fmt.Errorf("unable to kill container %v", container.ID)
 		return
 	}
-	log.Errorf("docker client or container is nil")
+	err = fmt.Errorf("docker client or container is nil")
 	return
 }
 
