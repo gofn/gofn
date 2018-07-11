@@ -52,7 +52,7 @@ func run(contextDir, dockerfile, imageName, remoteBuildURI, volumeSource, volume
 	if remote {
 		key := os.Getenv("DIGITALOCEAN_API_KEY")
 		if key == "" {
-			log.Println("You must provide an api key for digital ocean")
+			log.Fatalln("You must provide an api key for digital ocean")
 		}
 		do, err := digitalocean.New(key)
 		if err != nil {

@@ -15,19 +15,17 @@ import (
 	uuid "github.com/satori/go.uuid"
 )
 
-// provider definition, represents a concrete implementation of an iaas
-type provider struct {
-	Client            libmachine.API
-	Host              *host.Host
-	Name              string
-	ClientPath        string
-	Region            string
-	Size              string
-	ImageSlug         string
-	KeyID             int
-	Ctx               context.Context
-	sshPublicKeyPath  string
-	sshPrivateKeyPath string
+// Provider definition, represents a concrete implementation of an iaas
+type Provider struct {
+	Client     libmachine.API
+	Host       *host.Host
+	Name       string
+	ClientPath string
+	Region     string
+	Size       string
+	ImageSlug  string
+	KeyID      int
+	Ctx        context.Context
 }
 
 type driverConfig struct {
@@ -53,7 +51,7 @@ func getConfig(machineDir, hostName string) (config *driverConfig, err error) {
 	return
 }
 
-func New(token string) (do *provider, err error) {
+func New(token string) (do *Provider, err error) {
 	var uid uuid.UUID
 	uid, err = uuid.NewV4()
 	if err != nil {
@@ -64,7 +62,7 @@ func New(token string) (do *provider, err error) {
 	c := libmachine.NewClient(clientPath, clientPath+"/certs")
 	driver := digitalocean.NewDriver(name, clientPath)
 	driver.AccessToken = token
-	do = &provider{
+	do = &Provider{
 		Client:     c,
 		Name:       name,
 		ClientPath: clientPath,
@@ -84,7 +82,7 @@ func New(token string) (do *provider, err error) {
 }
 
 // CreateMachine on digitalocean
-func (do *provider) CreateMachine() (machine *iaas.Machine, err error) {
+func (do *Provider) CreateMachine() (machine *iaas.Machine, err error) {
 
 	err = do.Client.Create(do.Host)
 	if err != nil {
@@ -108,7 +106,7 @@ func (do *provider) CreateMachine() (machine *iaas.Machine, err error) {
 }
 
 // DeleteMachine Shutdown and Delete a droplet
-func (do *provider) DeleteMachine() (err error) {
+func (do *Provider) DeleteMachine() (err error) {
 	err = do.Host.Driver.Remove()
 	defer do.Client.Close()
 	if err != nil {

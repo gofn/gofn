@@ -77,7 +77,7 @@ func (m *myAPI) GetMachinesDir() string {
 
 func TestCreateMachine(t *testing.T) {
 	// error on create machine
-	p := provider{
+	p := Provider{
 		Client: libmachine.NewClient("", ""),
 	}
 	driver := &faultyDriver{}
@@ -95,7 +95,7 @@ func TestCreateMachine(t *testing.T) {
 		t.Fatal(err)
 	}
 	// error on get config
-	p = provider{
+	p = Provider{
 		Client: &libmachinetest.FakeAPI{},
 	}
 	driver2 := &fakedriver.Driver{}
@@ -106,7 +106,7 @@ func TestCreateMachine(t *testing.T) {
 		t.Fatal(err)
 	}
 	// sucess test
-	p = provider{
+	p = Provider{
 		Client: &myAPI{},
 	}
 	p.Name = "testconfig"
@@ -138,7 +138,7 @@ func (r removeDriver) Remove() error {
 
 func TestDeleteMachine(t *testing.T) {
 	// success
-	p := provider{
+	p := Provider{
 		Client: &libmachinetest.FakeAPI{},
 	}
 	driver := &fakedriver.Driver{}
@@ -149,7 +149,7 @@ func TestDeleteMachine(t *testing.T) {
 		t.Fatal(err)
 	}
 	// error on close will be ignored
-	p = provider{
+	p = Provider{
 		Client: &deleteAPI{},
 	}
 	p.Host = &host.Host{}
@@ -159,7 +159,7 @@ func TestDeleteMachine(t *testing.T) {
 		t.Fatal(err)
 	}
 	// error on remove
-	p = provider{
+	p = Provider{
 		Client: &libmachinetest.FakeAPI{},
 	}
 	driver2 := &removeDriver{}

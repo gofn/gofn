@@ -14,5 +14,5 @@ type Machine struct {
 	Name      string `json:"name"`
 	Kind      string `json:"kind"`
 	SSHKeysID []int  `json:"ssh_keys_id"`
-	CertsDir  string `json:certs_dir`
+	CertsDir  string `json:"certs_dir"`
 }
