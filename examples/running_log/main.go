@@ -13,7 +13,7 @@ import (
 func main() {
 	key := os.Getenv("DIGITALOCEAN_API_KEY")
 	if key == "" {
-		log.Println("You must provide an api key for digital ocean")
+		log.Fatalln("You must provide an api key for digital ocean")
 	}
 	iaas, err := digitalocean.New(key)
 	if err != nil {
