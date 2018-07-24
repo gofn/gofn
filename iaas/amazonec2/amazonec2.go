@@ -52,7 +52,7 @@ func getConfig(machineDir, hostName string) (config *driverConfig, err error) {
 	return
 }
 
-func setFlags(driver *amazonec2.Driver) {
+func setFlags(driver *amazonec2.Driver) (err error) {
 	flags := driver.GetCreateFlags()
 
 	driverOpts := rpcdriver.RPCFlags{
@@ -75,8 +75,12 @@ func setFlags(driver *amazonec2.Driver) {
 	driverOpts.Values["swarm-strategy"] = "spread"
 	driverOpts.Values["swarm-discovery"] = ""
 	driverOpts.Values["swarm-master"] = false
-	driver.SetConfigFromFlags(&driverOpts)
+	err = driver.SetConfigFromFlags(&driverOpts)
+	if err != nil {
+		return
+	}
 	driver.SetSwarmConfigFromFlags(&driverOpts)
+	return
 }
 
 func New(accessKey, secretKey string) (p *Provider, err error) {
@@ -91,7 +95,10 @@ func New(accessKey, secretKey string) (p *Provider, err error) {
 	driver := amazonec2.NewDriver(name, clientPath)
 	driver.AccessKey = accessKey
 	driver.SecretKey = secretKey
-	setFlags(driver)
+	err = setFlags(driver)
+	if err != nil {
+		return
+	}
 
 	p = &Provider{
 		Client:     c,
