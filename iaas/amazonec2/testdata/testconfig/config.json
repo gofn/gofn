@@ -1,0 +1,11 @@
+{
+    "Driver": {
+        "IPAddress": "111.222.333.444",
+        "MachineName": "gofn-test",
+        "AMI": "ami-927185ef",
+        "SSHKeyID": 999999,
+        "InstanceId": "i-00000000000000"
+    },
+    "DriverName": "amazonec2",
+    "Name": "gofn-test"
+}
