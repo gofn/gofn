@@ -1,0 +1,8 @@
+{
+    "Driver": {
+        "IPAddress": "111.222.333.444",
+        "MachineName": "gofn-test",
+        "MachineImage": "ubuntu-os-cloud/global/images/ubuntu-1604-xenial-v20170721"
+    },
+    "DriverName": "google"
+}

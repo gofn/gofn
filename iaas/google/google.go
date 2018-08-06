@@ -11,7 +11,6 @@ import (
 
 	"github.com/docker/machine/drivers/google"
 	"github.com/docker/machine/libmachine"
-	"github.com/docker/machine/libmachine/drivers"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/gofn/gofn/iaas"
 	uuid "github.com/satori/go.uuid"
@@ -21,7 +20,6 @@ import (
 type Provider struct {
 	Client     libmachine.API
 	Host       *host.Host
-	Driver     drivers.Driver
 	Name       string
 	ClientPath string
 	Region     string
@@ -75,7 +73,6 @@ func New(projectID string) (p *Provider, err error) {
 		Client:     c,
 		Name:       name,
 		ClientPath: clientPath,
-		Driver:     driver,
 	}
 
 	data, err := json.Marshal(driver)
@@ -90,7 +87,7 @@ func New(projectID string) (p *Provider, err error) {
 	return
 }
 
-// CreateMachine on digitalocean
+// CreateMachine on google
 func (p *Provider) CreateMachine() (machine *iaas.Machine, err error) {
 	err = p.Client.Create(p.Host)
 	if err != nil {
@@ -100,7 +97,7 @@ func (p *Provider) CreateMachine() (machine *iaas.Machine, err error) {
 	if err != nil {
 		return
 	}
-	ip, err := p.Driver.GetIP()
+	ip, err := p.Host.Driver.GetIP()
 	if err != nil {
 		return
 	}
