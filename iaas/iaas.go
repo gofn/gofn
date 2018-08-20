@@ -10,6 +10,7 @@ type Iaas interface {
 type Machine struct {
 	ID        string `json:"id"`
 	IP        string `json:"ip"`
+	Port      int    `json:"port"`
 	Image     string `json:"image"`
 	Name      string `json:"name"`
 	Kind      string `json:"kind"`
