@@ -43,6 +43,7 @@ type ContainerOptions struct {
 	Volumes []string
 	Image   string
 	Env     []string
+	Runtime string
 }
 
 // GetImageName sets preffix gofn when needed
@@ -85,7 +86,7 @@ func FnContainer(client *docker.Client, opts ContainerOptions) (container *docke
 	}
 	container, err = client.CreateContainer(docker.CreateContainerOptions{
 		Name:       fmt.Sprintf("gofn-%s", uid.String()),
-		HostConfig: &docker.HostConfig{Binds: opts.Volumes},
+		HostConfig: &docker.HostConfig{Binds: opts.Volumes, Runtime: opts.Runtime},
 		Config:     config,
 	})
 	return
