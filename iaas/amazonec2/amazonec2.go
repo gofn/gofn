@@ -1,11 +1,10 @@
 package amazonec2
 
 import (
+	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-
-	"context"
 
 	"github.com/docker/machine/drivers/amazonec2"
 	"github.com/docker/machine/libmachine"
@@ -145,8 +144,5 @@ func (p *Provider) CreateMachine() (machine *iaas.Machine, err error) {
 func (p *Provider) DeleteMachine() (err error) {
 	err = p.Host.Driver.Remove()
 	defer p.Client.Close()
-	if err != nil {
-		return
-	}
 	return
 }
