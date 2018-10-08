@@ -11,7 +11,7 @@ import (
 	"github.com/docker/machine/libmachine/drivers/rpc"
 	"github.com/docker/machine/libmachine/host"
 	"github.com/gofn/gofn/iaas"
-	uuid "github.com/satori/go.uuid"
+	"github.com/gofrs/uuid"
 )
 
 // Provider definition, represents a concrete implementation of an iaas
