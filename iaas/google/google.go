@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
-	"strconv"
 
 	"github.com/docker/machine/drivers/google"
 	"github.com/docker/machine/libmachine"
@@ -71,14 +70,15 @@ func New(projectID string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
 	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
 	driver := google.NewDriver(name, clientPath)
 	driver.Project = projectID
-	driver.MachineImage = p.ImageSlug
-	driver.Zone = p.Region
-	sizeInt, err := strconv.Atoi(p.Size)
-	if err != nil {
-		p = nil
-		return
+	if p.ImageSlug != "" {
+		driver.MachineName = p.ImageSlug
 	}
-	driver.DiskSize = sizeInt
+	if p.Region != "" {
+		driver.Zone = p.Region
+	}
+	if p.Size != "" {
+		driver.MachineType = p.Size
+	}
 	data, err := json.Marshal(driver)
 	if err != nil {
 		p = nil

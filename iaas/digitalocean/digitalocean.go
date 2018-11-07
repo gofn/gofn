@@ -64,11 +64,18 @@ func New(token string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
 	}
 	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
 	driver := digitalocean.NewDriver(name, clientPath)
-	driver.AccessToken = token
-	driver.Image = p.ImageSlug
-	driver.Region = p.Region
-	driver.Size = p.Size
-	driver.SSHKeyID = p.KeyID
+	if p.ImageSlug != "" {
+		driver.Image = p.ImageSlug
+	}
+	if p.Region != "" {
+		driver.Region = p.Region
+	}
+	if p.Size != "" {
+		driver.Size = p.Size
+	}
+	if p.KeyID != 0 {
+		driver.SSHKeyID = p.KeyID
+	}
 	data, err := json.Marshal(driver)
 	if err != nil {
 		p = nil

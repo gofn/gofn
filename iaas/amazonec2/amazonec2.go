@@ -99,15 +99,18 @@ func New(accessKey, secretKey string, opts ...iaas.ProviderOpts) (p *Provider, e
 	driver := amazonec2.NewDriver(p.Name, p.ClientPath)
 	driver.AccessKey = accessKey
 	driver.SecretKey = secretKey
-	driver.AMI = p.ImageSlug
-	driver.Region = p.Region
-	sizeInt, err := strconv.Atoi(p.Size)
-	if err != nil {
-		p = nil
-		return
+	if p.ImageSlug != "" {
+		driver.AMI = p.ImageSlug
 	}
-	driver.RootSize = int64(sizeInt)
-	driver.SSHKeyID = p.KeyID
+	if p.Region != "" {
+		driver.Region = p.Region
+	}
+	if p.Size != "" {
+		driver.InstanceType = p.Size
+	}
+	if p.KeyID != 0 {
+		driver.SSHKeyID = p.KeyID
+	}
 	err = setFlags(driver)
 	if err != nil {
 		p = nil
