@@ -1,7 +1,6 @@
 package amazonec2
 
 import (
-	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
