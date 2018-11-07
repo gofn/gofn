@@ -1,16 +1,14 @@
 package iaas
 
 import (
-	"context"
-
 	"github.com/docker/machine/libmachine"
 	"github.com/docker/machine/libmachine/host"
 )
 
 // Iaas represents a infresture service
 type Iaas interface {
-	CreateMachine(context.Context) (*Machine, error)
-	DeleteMachine(context.Context) error
+	CreateMachine() (*Machine, error)
+	DeleteMachine() error
 }
 
 // Machine defines a generic machine
