@@ -1,6 +1,7 @@
 package digitalocean
 
 import (
+	"github.com/gofn/gofn/iaas"
 	"encoding/json"
 	"errors"
 	"reflect"
@@ -78,7 +79,9 @@ func (m *myAPI) GetMachinesDir() string {
 func TestCreateMachine(t *testing.T) {
 	// error on create machine
 	p := Provider{
-		Client: libmachine.NewClient("", ""),
+		iaas.Provider{
+			Client: libmachine.NewClient("", ""),
+		},
 	}
 	driver := &faultyDriver{}
 	data, err := json.Marshal(driver)
@@ -96,7 +99,9 @@ func TestCreateMachine(t *testing.T) {
 	}
 	// error on get config
 	p = Provider{
-		Client: &libmachinetest.FakeAPI{},
+		iaas.Provider{
+			Client: &libmachinetest.FakeAPI{},
+		},
 	}
 	driver2 := &fakedriver.Driver{}
 	p.Host = &host.Host{}
@@ -107,7 +112,9 @@ func TestCreateMachine(t *testing.T) {
 	}
 	// sucess test
 	p = Provider{
-		Client: &myAPI{},
+		iaas.Provider{
+			Client: &myAPI{},
+		},
 	}
 	p.Name = "testconfig"
 	driver3 := &fakedriver.Driver{}
@@ -139,7 +146,9 @@ func (r removeDriver) Remove() error {
 func TestDeleteMachine(t *testing.T) {
 	// success
 	p := Provider{
-		Client: &libmachinetest.FakeAPI{},
+		iaas.Provider{
+			Client: &libmachinetest.FakeAPI{},
+		},
 	}
 	driver := &fakedriver.Driver{}
 	p.Host = &host.Host{}
@@ -150,7 +159,9 @@ func TestDeleteMachine(t *testing.T) {
 	}
 	// error on close will be ignored
 	p = Provider{
-		Client: &deleteAPI{},
+		iaas.Provider{
+			Client: &deleteAPI{},
+		},
 	}
 	p.Host = &host.Host{}
 	p.Host.Driver = driver
@@ -160,7 +171,9 @@ func TestDeleteMachine(t *testing.T) {
 	}
 	// error on remove
 	p = Provider{
-		Client: &libmachinetest.FakeAPI{},
+		iaas.Provider{
+			Client: &libmachinetest.FakeAPI{},
+		},
 	}
 	driver2 := &removeDriver{}
 	p.Host = &host.Host{}
