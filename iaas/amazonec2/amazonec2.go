@@ -1,6 +1,7 @@
 package amazonec2
 
 import (
+	"database/sql/driver"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -109,6 +110,9 @@ func New(accessKey, secretKey string, opts ...iaas.ProviderOpts) (p *Provider, e
 	}
 	if p.KeyID != 0 {
 		driver.SSHKeyID = p.KeyID
+	}
+	if p.DiskSize != 0 {
+		driver.RootSize = int64(p.DiskSize)
 	}
 	err = setFlags(driver)
 	if err != nil {

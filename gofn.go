@@ -147,10 +147,9 @@ func Run(ctx context.Context, buildOpts *provision.BuildOptions, containerOpts *
 				log.Errorf("error trying to remove container %v, %v, attempt:%v\n", container.ID, err.Error(), killAttempt+1)
 			}
 		}
-		err = fmt.Errorf("unable to kill container %v", container.ID)
 		return
 	}
-	err = fmt.Errorf("docker client or container is nil")
+	// err = fmt.Errorf("docker client or container is nil")
 	return
 }
 

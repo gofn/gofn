@@ -32,6 +32,7 @@ type Provider struct {
 	Size       string
 	ImageSlug  string
 	KeyID      int
+	DiskSize   int
 }
 
 // ProviderOpts override defaults
@@ -57,6 +58,14 @@ func WithSO(so string) ProviderOpts {
 func WithSize(size string) ProviderOpts {
 	return func(p *Provider) error {
 		p.Size = size
+		return nil
+	}
+}
+
+// WithDiskSize func
+func WithDiskSize(size int) ProviderOpts {
+	return func(p *Provider) error {
+		p.DiskSize = size
 		return nil
 	}
 }

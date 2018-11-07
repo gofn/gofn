@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"os"
+	"strings"
 
 	"github.com/docker/machine/drivers/google"
 	"github.com/docker/machine/libmachine"
@@ -70,14 +71,18 @@ func New(projectID string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
 	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
 	driver := google.NewDriver(name, clientPath)
 	driver.Project = projectID
+	p.ImageSlug = strings.TrimPrefix(p.ImageSlug, "https://www.googleapis.com/compute/v1/projects/")
 	if p.ImageSlug != "" {
-		driver.MachineName = p.ImageSlug
+		driver.MachineImage = p.ImageSlug
 	}
 	if p.Region != "" {
 		driver.Zone = p.Region
 	}
 	if p.Size != "" {
 		driver.MachineType = p.Size
+	}
+	if p.DiskSize != 0 {
+		driver.DiskSize = p.DiskSize
 	}
 	data, err := json.Marshal(driver)
 	if err != nil {
