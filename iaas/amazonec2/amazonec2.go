@@ -1,10 +1,10 @@
 package amazonec2
 
 import (
-	"strconv"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"strconv"
 
 	"github.com/docker/machine/drivers/amazonec2"
 	"github.com/docker/machine/libmachine"
@@ -113,13 +113,11 @@ func New(accessKey, secretKey string, opts ...iaas.ProviderOpts) (p *Provider, e
 		p = nil
 		return
 	}
-
 	data, err := json.Marshal(driver)
 	if err != nil {
 		p = nil
 		return
 	}
-
 	p.Host, err = p.Client.NewHost(driver.DriverName(), data)
 	if err != nil {
 		p = nil
