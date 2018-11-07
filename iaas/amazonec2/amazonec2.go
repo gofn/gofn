@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
-	"strconv"
 
 	"github.com/docker/machine/drivers/amazonec2"
 	"github.com/docker/machine/libmachine"
