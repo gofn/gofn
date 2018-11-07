@@ -7,26 +7,15 @@ import (
 	"io/ioutil"
 	"os"
 
-	"context"
-
 	"github.com/docker/machine/drivers/google"
 	"github.com/docker/machine/libmachine"
-	"github.com/docker/machine/libmachine/host"
 	"github.com/gofn/gofn/iaas"
 	"github.com/gofrs/uuid"
 )
 
 // Provider definition, represents a concrete implementation of an iaas
 type Provider struct {
-	Client     libmachine.API
-	Host       *host.Host
-	Name       string
-	ClientPath string
-	Region     string
-	Size       string
-	ImageSlug  string
-	KeyID      int
-	Ctx        context.Context
+	iaas.Provider
 }
 
 type driverConfig struct {
@@ -51,37 +40,53 @@ func getConfig(machineDir, hostName string) (config *driverConfig, err error) {
 	return
 }
 
-func New(projectID string) (p *Provider, err error) {
+func New(projectID string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
 	credentials := os.Getenv("GOOGLE_APPLICATION_CREDENTIALS")
 	if credentials == "" {
-		err = errors.New("You must set GOOGLE_APPLICATION_CREDENTIALS environment variable with the path for the credentials file")
+		err = errors.New("you must set GOOGLE_APPLICATION_CREDENTIALS environment variable with the path for the credentials file")
 		return
 	}
-
+	p = &Provider{}
+	for _, opt := range opts {
+		if err = opt(&p.Provider); err != nil {
+			p = nil
+			return
+		}
+	}
 	var uid uuid.UUID
 	uid, err = uuid.NewV4()
 	if err != nil {
+		p = nil
 		return
 	}
 	name := fmt.Sprintf("gofn-%s", uid.String())
-	clientPath := "/tmp/" + name
-	c := libmachine.NewClient(clientPath, clientPath+"/certs")
+	if p.Name == "" {
+		p.Name = name
+	}
+	clientPath := "/tmp/" + p.Name
+	if p.ClientPath == "" {
+		p.ClientPath = clientPath
+	}
+	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
 	driver := google.NewDriver(name, clientPath)
 	driver.Project = projectID
-
-	p = &Provider{
-		Client:     c,
-		Name:       name,
-		ClientPath: clientPath,
+	if p.ImageSlug != "" {
+		driver.MachineName = p.ImageSlug
 	}
-
+	if p.Region != "" {
+		driver.Zone = p.Region
+	}
+	if p.Size != "" {
+		driver.MachineType = p.Size
+	}
 	data, err := json.Marshal(driver)
 	if err != nil {
+		p = nil
 		return
 	}
-
 	p.Host, err = p.Client.NewHost(driver.DriverName(), data)
 	if err != nil {
+		p = nil
 		return
 	}
 	return

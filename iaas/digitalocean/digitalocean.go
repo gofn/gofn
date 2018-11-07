@@ -6,26 +6,15 @@ import (
 	"io/ioutil"
 	"strconv"
 
-	"context"
-
 	"github.com/docker/machine/drivers/digitalocean"
 	"github.com/docker/machine/libmachine"
-	"github.com/docker/machine/libmachine/host"
 	"github.com/gofn/gofn/iaas"
 	"github.com/gofrs/uuid"
 )
 
 // Provider definition, represents a concrete implementation of an iaas
 type Provider struct {
-	Client     libmachine.API
-	Host       *host.Host
-	Name       string
-	ClientPath string
-	Region     string
-	Size       string
-	ImageSlug  string
-	KeyID      int
-	Ctx        context.Context
+	iaas.Provider
 }
 
 type driverConfig struct {
@@ -51,39 +40,57 @@ func getConfig(machineDir, hostName string) (config *driverConfig, err error) {
 	return
 }
 
-func New(token string) (do *Provider, err error) {
+func New(token string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
+	p = &Provider{}
+	for _, opt := range opts {
+		if err = opt(&p.Provider); err != nil {
+			p = nil
+			return
+		}
+	}
 	var uid uuid.UUID
 	uid, err = uuid.NewV4()
 	if err != nil {
+		p = nil
 		return
 	}
 	name := fmt.Sprintf("gofn-%s", uid.String())
-	clientPath := "/tmp/" + name
-	c := libmachine.NewClient(clientPath, clientPath+"/certs")
-	driver := digitalocean.NewDriver(name, clientPath)
-	driver.AccessToken = token
-	do = &Provider{
-		Client:     c,
-		Name:       name,
-		ClientPath: clientPath,
+	if p.Name == "" {
+		p.Name = name
 	}
-
+	clientPath := "/tmp/" + p.Name
+	if p.ClientPath == "" {
+		p.ClientPath = clientPath
+	}
+	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
+	driver := digitalocean.NewDriver(name, clientPath)
+	if p.ImageSlug != "" {
+		driver.Image = p.ImageSlug
+	}
+	if p.Region != "" {
+		driver.Region = p.Region
+	}
+	if p.Size != "" {
+		driver.Size = p.Size
+	}
+	if p.KeyID != 0 {
+		driver.SSHKeyID = p.KeyID
+	}
 	data, err := json.Marshal(driver)
 	if err != nil {
+		p = nil
 		return
 	}
-
-	do.Host, err = do.Client.NewHost(driver.DriverName(), data)
+	p.Host, err = p.Client.NewHost(driver.DriverName(), data)
 	if err != nil {
+		p = nil
 		return
 	}
-
 	return
 }
 
 // CreateMachine on digitalocean
 func (do *Provider) CreateMachine() (machine *iaas.Machine, err error) {
-
 	err = do.Client.Create(do.Host)
 	if err != nil {
 		return

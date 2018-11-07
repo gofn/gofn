@@ -1,7 +1,6 @@
 package amazonec2
 
 import (
-	"context"
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
@@ -9,22 +8,13 @@ import (
 	"github.com/docker/machine/drivers/amazonec2"
 	"github.com/docker/machine/libmachine"
 	"github.com/docker/machine/libmachine/drivers/rpc"
-	"github.com/docker/machine/libmachine/host"
 	"github.com/gofn/gofn/iaas"
 	"github.com/gofrs/uuid"
 )
 
 // Provider definition, represents a concrete implementation of an iaas
 type Provider struct {
-	Client     libmachine.API
-	Host       *host.Host
-	Name       string
-	ClientPath string
-	Region     string
-	Size       string
-	ImageSlug  string
-	KeyID      int
-	Ctx        context.Context
+	iaas.Provider
 }
 
 type driverConfig struct {
@@ -82,36 +72,57 @@ func setFlags(driver *amazonec2.Driver) (err error) {
 	return
 }
 
-func New(accessKey, secretKey string) (p *Provider, err error) {
+func New(accessKey, secretKey string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
+	p = &Provider{}
+	for _, opt := range opts {
+		if err = opt(&p.Provider); err != nil {
+			p = nil
+			return
+		}
+	}
 	var uid uuid.UUID
 	uid, err = uuid.NewV4()
 	if err != nil {
+		p = nil
 		return
 	}
 	name := fmt.Sprintf("gofn-%s", uid.String())
-	clientPath := "/tmp/" + name
-	c := libmachine.NewClient(clientPath, clientPath+"/certs")
-	driver := amazonec2.NewDriver(name, clientPath)
+	if p.Name == "" {
+		p.Name = name
+	}
+	clientPath := "/tmp/" + p.Name
+	if p.ClientPath == "" {
+		p.ClientPath = clientPath
+	}
+	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
+	driver := amazonec2.NewDriver(p.Name, p.ClientPath)
 	driver.AccessKey = accessKey
 	driver.SecretKey = secretKey
+	if p.ImageSlug != "" {
+		driver.AMI = p.ImageSlug
+	}
+	if p.Region != "" {
+		driver.Region = p.Region
+	}
+	if p.Size != "" {
+		driver.InstanceType = p.Size
+	}
+	if p.KeyID != 0 {
+		driver.SSHKeyID = p.KeyID
+	}
 	err = setFlags(driver)
 	if err != nil {
+		p = nil
 		return
 	}
-
-	p = &Provider{
-		Client:     c,
-		Name:       name,
-		ClientPath: clientPath,
-	}
-
 	data, err := json.Marshal(driver)
 	if err != nil {
+		p = nil
 		return
 	}
-
 	p.Host, err = p.Client.NewHost(driver.DriverName(), data)
 	if err != nil {
+		p = nil
 		return
 	}
 	return
