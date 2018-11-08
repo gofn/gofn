@@ -63,7 +63,8 @@ func New(token string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
 		p.ClientPath = clientPath
 	}
 	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
-	driver := digitalocean.NewDriver(name, clientPath)
+	driver := digitalocean.NewDriver(p.Name, clientPath)
+	driver.AccessToken = token
 	if p.ImageSlug != "" {
 		driver.Image = p.ImageSlug
 	}

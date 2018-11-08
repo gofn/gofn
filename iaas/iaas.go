@@ -33,6 +33,7 @@ type Provider struct {
 	ImageSlug  string
 	KeyID      int
 	DiskSize   int
+	Reused     bool
 }
 
 // ProviderOpts override defaults
@@ -90,6 +91,14 @@ func WithRegion(region string) ProviderOpts {
 func WithClientPath(path string) ProviderOpts {
 	return func(p *Provider) error {
 		p.ClientPath = path
+		return nil
+	}
+}
+
+// IsReused func
+func IsReused(reused bool) ProviderOpts {
+	return func(p *Provider) error {
+		p.Reused = reused
 		return nil
 	}
 }

@@ -69,8 +69,9 @@ func New(projectID string, opts ...iaas.ProviderOpts) (p *Provider, err error) {
 		p.ClientPath = clientPath
 	}
 	p.Client = libmachine.NewClient(p.ClientPath, p.ClientPath+"/certs")
-	driver := google.NewDriver(name, clientPath)
+	driver := google.NewDriver(p.Name, clientPath)
 	driver.Project = projectID
+	driver.UseExisting = p.Reused
 	p.ImageSlug = strings.TrimPrefix(p.ImageSlug, "https://www.googleapis.com/compute/v1/projects/")
 	if p.ImageSlug != "" {
 		driver.MachineImage = p.ImageSlug
@@ -126,10 +127,12 @@ func (p *Provider) CreateMachine() (machine *iaas.Machine, err error) {
 
 // DeleteMachine Shutdown and Delete a droplet
 func (p *Provider) DeleteMachine() (err error) {
-	err = p.Host.Driver.Remove()
 	defer p.Client.Close()
-	if err != nil {
-		return
+	if !p.Reused {
+		err = p.Host.Driver.Remove()
+		if err != nil {
+			return
+		}
 	}
 	return
 }
