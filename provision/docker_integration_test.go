@@ -2,7 +2,7 @@ package provision
 
 import "testing"
 
-func TestFnClient(t *testing.T) {
+func TestFnClientIntegration(t *testing.T) {
 	if testing.Short() {
 		t.Skip("skipping integration test in short mode")
 	}

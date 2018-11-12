@@ -8,13 +8,6 @@ import (
 	fake "github.com/fsouza/go-dockerclient/testing"
 )
 
-func TestFnClientWrongClient(t *testing.T) {
-	_, err := FnClient("http://localhost:a", "")
-	if err == nil {
-		t.Fatal("expected error but no errors found")
-	}
-}
-
 func createFakeDockerAPI(t *testing.T) *fake.DockerServer {
 	// Fake docker api
 	server, err := fake.NewServer("127.0.0.1:0", nil, nil)
