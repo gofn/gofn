@@ -7,6 +7,7 @@ services:
 
 os:
   - linux
+  - windows
 
 go:
   - "1.9"
@@ -20,7 +21,6 @@ matrix:
 
 before_install:
   - go get -t ./...
-  - eval "$(ssh-agent -s)"
   - go get github.com/docker/machine/cmd/docker-machine
 
 script:
