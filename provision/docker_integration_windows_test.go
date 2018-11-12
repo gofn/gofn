@@ -1,3 +1,5 @@
+// +build windows
+
 package provision
 
 import "testing"
@@ -8,7 +10,7 @@ func TestFnClientIntegration(t *testing.T) {
 	}
 
 	// connect from local socket
-	client, err := FnClient("unix:///var/run/docker.sock", "")
+	client, err := FnClient("npipe:////./pipe/docker_engine", "")
 	if err != nil {
 		t.Errorf("FnClient with URI: expected nil but returned %q", err)
 	}
