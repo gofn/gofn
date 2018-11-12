@@ -53,16 +53,6 @@ func (opts BuildOptions) GetImageName() string {
 	return "gofn/" + opts.ImageName
 }
 
-// FnClient instantiate a docker client
-func FnClient(endPoint, certsDir string) (client *docker.Client, err error) {
-	if endPoint == "" {
-		endPoint = "unix:///var/run/docker.sock"
-	}
-
-	client, err = docker.NewTLSClient(endPoint, certsDir+"/cert.pem", certsDir+"/key.pem", certsDir+"/ca.pem")
-	return
-}
-
 // FnRemove remove container
 func FnRemove(client *docker.Client, containerID string) (err error) {
 	err = client.RemoveContainer(docker.RemoveContainerOptions{ID: containerID, Force: true})
