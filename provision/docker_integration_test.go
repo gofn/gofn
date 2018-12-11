@@ -13,6 +13,7 @@ func TestFnImageBuildIntegration(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	opts := &BuildOptions{
 		ImageName: "nuveo/testprivategofn",
 		Auth: docker.AuthConfiguration{

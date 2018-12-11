@@ -87,6 +87,9 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 	if opts.Dockerfile == "" {
 		opts.Dockerfile = "Dockerfile"
 	}
+	if opts.Auth.ServerAddress == "" {
+		opts.Auth.ServerAddress = "https://index.docker.io/v1/"
+	}
 	stdout := new(bytes.Buffer)
 	Name = opts.GetImageName()
 	err = client.BuildImage(docker.BuildImageOptions{
