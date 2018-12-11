@@ -15,7 +15,8 @@ func TestFnImageBuildIntegration(t *testing.T) {
 	}
 
 	opts := &BuildOptions{
-		ImageName: "nuveo/testprivategofn",
+		ImageName:               "nuveo/testprivategofn",
+		DoNotUsePrefixImageName: true,
 		Auth: docker.AuthConfiguration{
 			Username: os.Getenv("DOCKER_LOGIN"),
 			Password: os.Getenv("DOCKER_PASSWORD"),
