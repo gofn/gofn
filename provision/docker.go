@@ -88,10 +88,10 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 	if opts.Dockerfile == "" {
 		opts.Dockerfile = "Dockerfile"
 	}
-	if opts.Auth.ServerAddress == "" {
-		opts.Auth.ServerAddress = "https://index.docker.io/v1/"
-	}
 	if (opts.Auth.Email != "" || opts.Auth.Username != "") && opts.Auth.Password != "" {
+		if opts.Auth.ServerAddress == "" {
+			opts.Auth.ServerAddress = "https://index.docker.io/v1/"
+		}
 		var status docker.AuthStatus
 		status, err = client.AuthCheck(&opts.Auth)
 		if err != nil {
