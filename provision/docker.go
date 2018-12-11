@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path"
 	"strings"
 
 	docker "github.com/fsouza/go-dockerclient"
@@ -51,7 +52,16 @@ func (opts BuildOptions) GetImageName() string {
 	if opts.DoNotUsePrefixImageName {
 		return opts.ImageName
 	}
-	return "gofn/" + opts.ImageName
+	return path.Join("gofn", opts.ImageName)
+}
+
+// GetImageName sets prefix library when needed
+func (opts BuildOptions) GetRepoName() string {
+	split := strings.Split(opts.GetImageName(), "/")
+	if len(split) > 1 {
+		return opts.GetImageName()
+	}
+	return path.Join("library", opts.GetImageName())
 }
 
 // FnRemove remove container
@@ -94,7 +104,7 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		opts.Auth.ServerAddress = "https://index.docker.io/v1/"
 	}
 	if opts.RemoteURI == "" {
-		opts.RemoteURI = fmt.Sprintf("%s%s", opts.Auth.ServerAddress, opts.GetImageName())
+		opts.RemoteURI = path.Join("https://index.docker.io", opts.GetRepoName())
 	}
 	stdout := new(bytes.Buffer)
 	Name = opts.GetImageName()
