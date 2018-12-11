@@ -175,7 +175,7 @@ func TestFnBuildImageSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", false, "test", "", "", nil})
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", false, "test", "", "", nil, docker.AuthConfiguration{}, false})
 	if err != nil {
 		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
 	}
@@ -192,7 +192,7 @@ func TestFnBuildImageRemoteSuccessfully(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", false, "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git", "", nil})
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", false, "test", "https://github.com/gofn/dockerfile-python-exampl://github.com/gofn/dockerfile-python-example.git", "", nil, docker.AuthConfiguration{}, false})
 	if err != nil {
 		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
 	}
@@ -210,7 +210,7 @@ func TestFnBuildImageDoNotUsePrefixImageName(t *testing.T) {
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
 	imageName := "testDoNotUsePrefixImageName"
-	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", true, imageName, "", "", nil})
+	name, _, err := FnImageBuild(client, &BuildOptions{"./testing_data", "", true, imageName, "", "", nil, docker.AuthConfiguration{}, false})
 	if err != nil {
 		t.Errorf("FnImageBuild expected nil but found %q, %q", name, err)
 	}
@@ -225,7 +225,7 @@ func TestFnBuildImageDockerfileNotFound(t *testing.T) {
 
 	// Instantiate a client
 	client := NewTestClient(server.URL(), t)
-	_, _, err := FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", false, "test", "", "", nil})
+	_, _, err := FnImageBuild(client, &BuildOptions{"./wrong", "Dockerfile", false, "test", "", "", nil, docker.AuthConfiguration{}, false})
 	if err == nil {
 		t.Errorf("FnImageBuild expected error but returned nil")
 	}

@@ -5,6 +5,7 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"path"
 	"strings"
 
 	docker "github.com/fsouza/go-dockerclient"
@@ -35,6 +36,8 @@ type BuildOptions struct {
 	RemoteURI               string
 	StdIN                   string
 	Iaas                    iaas.Iaas
+	Auth                    docker.AuthConfiguration
+	ForcePull               bool
 }
 
 // ContainerOptions are options used in container
@@ -46,12 +49,12 @@ type ContainerOptions struct {
 	Runtime string
 }
 
-// GetImageName sets preffix gofn when needed
+// GetImageName sets prefix gofn when needed
 func (opts BuildOptions) GetImageName() string {
 	if opts.DoNotUsePrefixImageName {
 		return opts.ImageName
 	}
-	return "gofn/" + opts.ImageName
+	return path.Join("gofn", opts.ImageName)
 }
 
 // FnRemove remove container
@@ -87,8 +90,19 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 	if opts.Dockerfile == "" {
 		opts.Dockerfile = "Dockerfile"
 	}
+	if opts.ContextDir == "" && opts.RemoteURI == "" {
+		opts.ContextDir = "./"
+	}
+	err = auth(client, opts)
+	if err != nil {
+		return
+	}
 	stdout := new(bytes.Buffer)
 	Name = opts.GetImageName()
+	if opts.ForcePull {
+		err = FnPull(client, opts)
+		return
+	}
 	err = client.BuildImage(docker.BuildImageOptions{
 		Name:           Name,
 		Dockerfile:     opts.Dockerfile,
@@ -96,12 +110,59 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		OutputStream:   stdout,
 		ContextDir:     opts.ContextDir,
 		Remote:         opts.RemoteURI,
+		Auth:           opts.Auth,
 	})
 	if err != nil {
-		return
+		if !strings.Contains(err.Error(), "Cannot locate specified Dockerfile:") { // the error is not exported so we need to verify using the message
+			return
+		}
+		err = FnPull(client, opts)
+		if err != nil {
+			return
+		}
 	}
 	Stdout = stdout
 	return
+}
+
+func auth(client *docker.Client, opts *BuildOptions) (err error) {
+	if (opts.Auth.Email != "" || opts.Auth.Username != "") && opts.Auth.Password != "" {
+		if opts.Auth.ServerAddress == "" {
+			opts.Auth.ServerAddress = "https://index.docker.io/v1/"
+		}
+		var status docker.AuthStatus
+		status, err = client.AuthCheck(&opts.Auth)
+		if err != nil {
+			return
+		}
+		opts.Auth.IdentityToken = status.IdentityToken
+	}
+	return
+}
+
+// FnPull pull image from registry
+func FnPull(client *docker.Client, opts *BuildOptions) (err error) {
+	repo, tag := parseDockerImage(opts.GetImageName())
+	err = client.PullImage(docker.PullImageOptions{
+		Repository: repo,
+		Tag:        tag,
+	}, opts.Auth)
+	return
+}
+
+func parseDockerImage(image string) (repo, tag string) {
+	repo, tag = docker.ParseRepositoryTag(image)
+	if tag != "" {
+		return repo, tag
+	}
+	if i := strings.IndexRune(image, '@'); i > -1 { // Has digest (@sha256:...)
+		// when pulling images with a digest, the repository contains the sha hash, and the tag is empty
+		// see: https://github.com/fsouza/go-dockerclient/blob/master/image_test.go#L471
+		repo = image
+	} else {
+		tag = "latest"
+	}
+	return repo, tag
 }
 
 // FnFindImage returns image data by name
@@ -205,7 +266,7 @@ func FnRun(client *docker.Client, containerID, input string) (Stdout *bytes.Buff
 	stderr := new(bytes.Buffer)
 
 	// omit logs because execution error is more important
-	_ = FnLogs(client, containerID, stdout, stderr)
+	_ = FnLogs(client, containerID, stdout, stderr) // nolint
 
 	Stdout = stdout
 	Stderr = stderr

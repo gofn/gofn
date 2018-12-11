@@ -7,7 +7,7 @@ services:
 
 os:
   - linux
-  - windows
+#  - windows travis in beta for windows and broken for now
 
 go:
   - "1.9"
