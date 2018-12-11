@@ -55,7 +55,7 @@ func (opts BuildOptions) GetImageName() string {
 	return path.Join("gofn", opts.ImageName)
 }
 
-// GetImageName sets prefix library when needed
+// GetRepoName sets prefix library when needed
 func (opts BuildOptions) GetRepoName() string {
 	split := strings.Split(opts.GetImageName(), "/")
 	if len(split) > 1 {
@@ -104,7 +104,7 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		opts.Auth.ServerAddress = "https://index.docker.io/v1/"
 	}
 	if opts.RemoteURI == "" {
-		opts.RemoteURI = path.Join("https://index.docker.io", opts.GetRepoName())
+		opts.RemoteURI = fmt.Sprintf("https://index.docker.io/%s", opts.GetRepoName())
 	}
 	stdout := new(bytes.Buffer)
 	Name = opts.GetImageName()
