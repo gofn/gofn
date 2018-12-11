@@ -37,6 +37,7 @@ type BuildOptions struct {
 	StdIN                   string
 	Iaas                    iaas.Iaas
 	Auth                    docker.AuthConfiguration
+	ForcePull               bool
 }
 
 // ContainerOptions are options used in container
@@ -88,19 +89,19 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 	if opts.Dockerfile == "" {
 		opts.Dockerfile = "Dockerfile"
 	}
-	if (opts.Auth.Email != "" || opts.Auth.Username != "") && opts.Auth.Password != "" {
-		if opts.Auth.ServerAddress == "" {
-			opts.Auth.ServerAddress = "https://index.docker.io/v1/"
-		}
-		var status docker.AuthStatus
-		status, err = client.AuthCheck(&opts.Auth)
-		if err != nil {
-			return
-		}
-		opts.Auth.IdentityToken = status.IdentityToken
+	if opts.ContextDir == "" && opts.RemoteURI == "" {
+		opts.ContextDir = "./"
+	}
+	err = auth(client, opts)
+	if err != nil {
+		return
 	}
 	stdout := new(bytes.Buffer)
 	Name = opts.GetImageName()
+	if opts.ForcePull {
+		err = FnPull(client, opts)
+		return
+	}
 	err = client.BuildImage(docker.BuildImageOptions{
 		Name:           Name,
 		Dockerfile:     opts.Dockerfile,
@@ -114,16 +115,37 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		if !strings.Contains(err.Error(), "Cannot locate specified Dockerfile:") { // the error is not exported so we need to verify using the message
 			return
 		}
-		repo, tag := parseDockerImage(opts.ImageName)
-		err = client.PullImage(docker.PullImageOptions{
-			Repository: repo,
-			Tag:        tag,
-		}, opts.Auth)
+		err = FnPull(client, opts)
 		if err != nil {
 			return
 		}
 	}
 	Stdout = stdout
+	return
+}
+
+func auth(client *docker.Client, opts *BuildOptions) (err error) {
+	if (opts.Auth.Email != "" || opts.Auth.Username != "") && opts.Auth.Password != "" {
+		if opts.Auth.ServerAddress == "" {
+			opts.Auth.ServerAddress = "https://index.docker.io/v1/"
+		}
+		var status docker.AuthStatus
+		status, err = client.AuthCheck(&opts.Auth)
+		if err != nil {
+			return
+		}
+		opts.Auth.IdentityToken = status.IdentityToken
+	}
+	return
+}
+
+// FnPull pull image from registry
+func FnPull(client *docker.Client, opts *BuildOptions) (err error) {
+	repo, tag := parseDockerImage(opts.GetImageName())
+	err = client.PullImage(docker.PullImageOptions{
+		Repository: repo,
+		Tag:        tag,
+	}, opts.Auth)
 	return
 }
 
