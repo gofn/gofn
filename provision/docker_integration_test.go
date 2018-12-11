@@ -17,19 +17,33 @@ func TestFnImageBuildIntegration(t *testing.T) {
 	opts := &BuildOptions{
 		ImageName:               "nuveo/testprivategofn",
 		DoNotUsePrefixImageName: true,
+		ContextDir:              "./",
 		Auth: docker.AuthConfiguration{
 			Username: os.Getenv("DOCKER_LOGIN"),
 			Password: os.Getenv("DOCKER_PASSWORD"),
 		},
 	}
-	name, out, err := FnImageBuild(client, opts)
+	name, _, err := FnImageBuild(client, opts)
 	if err != nil {
 		t.Fatal(err)
 	}
 	if name != "nuveo/testprivategofn" {
 		t.Error(`image name is not "nuveo/testprivategofn"`)
 	}
-	if !strings.Contains(out.String(), "Pull") {
-		t.Errorf(`do not contains word "Pull", OUT: %v`, out.String())
+	c, err := FnContainer(client, ContainerOptions{
+		Image: opts.ImageName,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	stdout, stderr, err := FnRun(client, c.ID, "test")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if strings.TrimSpace(stderr.String()) != "" {
+		t.Error("stderr is not empty")
+	}
+	if strings.TrimSpace(stdout.String()) == "" {
+		t.Error("stdout is empty")
 	}
 }
