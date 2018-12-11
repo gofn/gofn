@@ -97,9 +97,8 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 	if opts.Dockerfile == "" {
 		opts.Dockerfile = "Dockerfile"
 	}
-	var inputStream *bytes.Buffer
 	if opts.ContextDir == "" {
-		inputStream = new(bytes.Buffer)
+		opts.ContextDir = "./"
 	}
 	if opts.Auth.ServerAddress == "" {
 		opts.Auth.ServerAddress = "https://index.docker.io/v1/"
@@ -114,6 +113,7 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 			return
 		}
 		opts.Auth.IdentityToken = status.IdentityToken
+		fmt.Println(">>>>>>>>>>>>>>>", opts.Auth, status)
 	}
 	stdout := new(bytes.Buffer)
 	Name = opts.GetImageName()
@@ -122,7 +122,6 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		Dockerfile:     opts.Dockerfile,
 		SuppressOutput: true,
 		OutputStream:   stdout,
-		InputStream:    inputStream,
 		ContextDir:     opts.ContextDir,
 		Remote:         opts.RemoteURI,
 		Auth:           opts.Auth,
