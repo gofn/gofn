@@ -111,10 +111,35 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		Auth:           opts.Auth,
 	})
 	if err != nil {
-		return
+		if !strings.Contains(err.Error(), "Cannot locate specified Dockerfile:") { // the error is not exported so we need to verify using the message
+			return
+		}
+		repo, tag := parseDockerImage(opts.ImageName)
+		err = client.PullImage(docker.PullImageOptions{
+			Repository: repo,
+			Tag:        tag,
+		}, opts.Auth)
+		if err != nil {
+			return
+		}
 	}
 	Stdout = stdout
 	return
+}
+
+func parseDockerImage(image string) (repo, tag string) {
+	repo, tag = docker.ParseRepositoryTag(image)
+	if tag != "" {
+		return repo, tag
+	}
+	if i := strings.IndexRune(image, '@'); i > -1 { // Has digest (@sha256:...)
+		// when pulling images with a digest, the repository contains the sha hash, and the tag is empty
+		// see: https://github.com/fsouza/go-dockerclient/blob/master/image_test.go#L471
+		repo = image
+	} else {
+		tag = "latest"
+	}
+	return repo, tag
 }
 
 // FnFindImage returns image data by name
