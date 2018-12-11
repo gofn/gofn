@@ -35,6 +35,7 @@ type BuildOptions struct {
 	RemoteURI               string
 	StdIN                   string
 	Iaas                    iaas.Iaas
+	Auth                    docker.AuthConfiguration
 }
 
 // ContainerOptions are options used in container
@@ -45,7 +46,7 @@ type ContainerOptions struct {
 	Env     []string
 }
 
-// GetImageName sets preffix gofn when needed
+// GetImageName sets prefix gofn when needed
 func (opts BuildOptions) GetImageName() string {
 	if opts.DoNotUsePrefixImageName {
 		return opts.ImageName
@@ -95,6 +96,7 @@ func FnImageBuild(client *docker.Client, opts *BuildOptions) (Name string, Stdou
 		OutputStream:   stdout,
 		ContextDir:     opts.ContextDir,
 		Remote:         opts.RemoteURI,
+		Auth:           opts.Auth,
 	})
 	if err != nil {
 		return
@@ -204,7 +206,7 @@ func FnRun(client *docker.Client, containerID, input string) (Stdout *bytes.Buff
 	stderr := new(bytes.Buffer)
 
 	// omit logs because execution error is more important
-	_ = FnLogs(client, containerID, stdout, stderr)
+	_ = FnLogs(client, containerID, stdout, stderr) // nolint
 
 	Stdout = stdout
 	Stderr = stderr
